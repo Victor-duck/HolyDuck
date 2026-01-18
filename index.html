@@ -16,7 +16,17 @@
         }
         .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         body { -webkit-tap-highlight-color: transparent; }
+        #debug-error { display: none; padding: 20px; background: #fee2e2; color: #b91c1c; border: 2px solid #ef4444; margin: 20px; border-radius: 8px; font-family: monospace; }
     </style>
+
+    <!-- Gestionnaire d'erreur global (Anti-Page Blanche) -->
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            const el = document.getElementById('debug-error');
+            el.style.display = 'block';
+            el.innerHTML = `<strong>Oups ! Une erreur est survenue :</strong><br>${message}<br><small>${source}:${lineno}</small>`;
+        };
+    </script>
 
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -25,7 +35,7 @@
     <!-- Babel (Pour comprendre le code React/JSX dans le navigateur) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Chargement des modules Firebase et mapping vers l'objet global window -->
+    <!-- Chargement des modules Firebase -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
@@ -35,7 +45,7 @@
             deleteDoc, orderBy 
         } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
-        // On attache tout à window pour que le script Babel puisse s'en servir
+        // On expose les modules pour le script React
         window.firebaseModules = {
             initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken,
             getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, 
@@ -44,28 +54,35 @@
         };
         
         // Signal que Firebase est prêt
+        window.firebaseReady = true;
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 </head>
 <body class="bg-gray-50 text-gray-800">
+    <!-- Zone d'affichage des erreurs -->
+    <div id="debug-error"></div>
+    
+    <!-- Application -->
     <div id="root"></div>
 
     <!-- CODE DE L'APPLICATION -->
     <script type="text/babel">
         // Attendre que les modules Firebase soient chargés
         const waitForFirebase = () => new Promise(resolve => {
-            if (window.firebaseModules) resolve();
+            if (window.firebaseReady) resolve();
             else window.addEventListener('firebase-ready', resolve);
         });
 
-        // --- ICONES LUCIDE (Version SVG Inline pour éviter les dépendances externes complexes) ---
+        // Identifiant unique pour isoler les données de votre salle
+        const appId = 'gym-duck-tracker-v1';
+
+        // --- ICONES LUCIDE (Version SVG Inline) ---
         const Icon = ({ path, size = 24, className = "", color = "currentColor" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 <g dangerouslySetInnerHTML={{ __html: path }} />
             </svg>
         );
 
-        // Map des icônes utilisées
         const Icons = {
             Camera: (p) => <Icon {...p} path='<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>' />,
             ShoppingBag: (p) => <Icon {...p} path='<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>' />,
@@ -96,19 +113,18 @@
         const Main = () => {
             const { useState, useEffect, useRef, useMemo } = React;
             
-            // --- CONFIGURATION ---
             // ===============================================================
-            // REMPLACEZ LES VALEURS CI-DESSOUS PAR VOS CLÉS FIREBASE
+            // CONFIGURATION FIREBASE DU CLIENT
             // ===============================================================
             const firebaseConfig = {
-  apiKey: "AIzaSyDfMT_0E2_D_Pq1Lu93y3BpFPa2Mh25Z3c",
-  authDomain: "duck-gym.firebaseapp.com",
-  projectId: "duck-gym",
-  storageBucket: "duck-gym.firebasestorage.app",
-  messagingSenderId: "925726427622",
-  appId: "1:925726427622:web:e730e1cc87a91ecc102e27",
-  measurementId: "G-H3BMWZ9VGL"
-}
+                apiKey: "AIzaSyDfMT_0E2_D_Pq1Lu93y3BpFPa2Mh25Z3c",
+                authDomain: "duck-gym.firebaseapp.com",
+                projectId: "duck-gym",
+                storageBucket: "duck-gym.firebasestorage.app",
+                messagingSenderId: "925726427622",
+                appId: "1:925726427622:web:e730e1cc87a91ecc102e27",
+                measurementId: "G-H3BMWZ9VGL"
+            };
             // ===============================================================
 
             // États globaux pour Firebase
@@ -120,10 +136,20 @@
                 waitForFirebase().then(() => {
                     const mods = window.firebaseModules;
                     try {
-                        // On vérifie si une app existe déjà pour éviter les doublons en dev
                         let app;
-                        try { app = mods.initializeApp(firebaseConfig); } 
-                        catch(e) { /* App déjà init */ }
+                        // On tente d'initialiser ou de récupérer l'app existante
+                        try { 
+                            // Si pas encore d'apps initialisées
+                            if (!mods.getApps?.().length) {
+                                app = mods.initializeApp(firebaseConfig); 
+                            } else {
+                                // Sinon on prend la première (par défaut)
+                                app = mods.getApps()[0];
+                            }
+                        } 
+                        catch(e) { 
+                            console.warn("Firebase déjà initialisé", e);
+                        }
                         
                         const auth = mods.getAuth();
                         const db = mods.getFirestore();
@@ -131,8 +157,8 @@
                         setServices({ auth, db, mods });
                         setFb(true);
                     } catch (e) {
-                        console.error("Erreur config Firebase (Avez-vous remplacé les clés ?)", e);
-                        alert("Erreur de configuration Firebase. Vérifiez le fichier index.html.");
+                        console.error("Erreur critique Firebase:", e);
+                        alert("Erreur de connexion à la base de données. Vérifiez la console.");
                     }
                 });
             }, []);
