@@ -11,7 +11,9 @@
         body { -webkit-tap-highlight-color: transparent; }
         #loading-fallback { position: fixed; inset:0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #FACC15; color: #000; font-weight: bold; font-size: 1.5rem; z-index: 9999; gap: 1rem; transition: opacity 0.5s; }
         #critical-error { display: none; position: fixed; inset: 0; background: #FEF2F2; color: #991B1B; padding: 2rem; z-index: 10000; overflow: auto; font-family: monospace; }
-        .firebase-error-banner { position: fixed; bottom: 0; left: 0; right: 0; background: #991B1B; color: white; padding: 1rem; font-size: 0.8rem; z-index: 10000; }
+        .firebase-error-banner { position: fixed; bottom: 0; left: 0; right: 0; background: #EF4444; color: white; padding: 1.5rem; font-size: 0.9rem; z-index: 10002; box-shadow: 0 -4px 6px rgba(0,0,0,0.3); border-top: 4px solid #B91C1C; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; }
+        .firebase-error-banner a { color: #FEF3C7; text-decoration: underline; font-weight: bold; }
+        .firebase-error-banner code { background: rgba(0,0,0,0.3); padding: 4px 8px; rounded: 4px; font-family: monospace; user-select: all; cursor: pointer; }
     </style>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -71,7 +73,7 @@
         const { useState, useEffect, useRef } = React;
 
         // --- CONFIGURATION ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+        const firebaseConfig = {
             apiKey: "AIzaSyDfMT_0E2_D_Pq1Lu93y3BpFPa2Mh25Z3c",
             authDomain: "duck-gym.firebaseapp.com",
             projectId: "duck-gym",
@@ -80,8 +82,7 @@
             appId: "1:925726427622:web:e730e1cc87a91ecc102e27",
             measurementId: "G-H3BMWZ9VGL"
         };
-        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gym-duck-tracker-v1';
-
+        
         // --- ASSETS & CONSTANTES ---
         const Icon = ({ path, size = 24, className = "", color = "currentColor" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{ __html: path }} />;
         const Icons = {
@@ -198,14 +199,14 @@
                 e.preventDefault();
                 if (!newR.name || !newR.cost) return;
                 try {
-                    await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'rewards'), { name: newR.name, cost: parseInt(newR.cost), iconKey: newR.iconKey });
+                    await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'duck_rewards'), { name: newR.name, cost: parseInt(newR.cost), iconKey: newR.iconKey });
                     setNewR({ name: '', cost: '', iconKey: 'gift' });
                     notify("Ajouté !", "success");
                 } catch (e) { notify("Erreur.", "error"); }
             };
             const del = async (id) => {
                 try {
-                    await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'rewards', id));
+                    await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'duck_rewards', id));
                     notify("Supprimé.", "success");
                 } catch(e) { notify("Erreur.", "error"); }
             };
@@ -293,7 +294,7 @@
 
             useEffect(() => {
                 if (isDaddyDuck) {
-                    window.firebaseModules.getDocs(window.firebaseModules.query(window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'users'))).then(s => {
+                    window.firebaseModules.getDocs(window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_users'))).then(s => {
                         const l = s.docs.map(doc => doc.data().name);
                         setUsers(l);
                         if (l.length && target === 'Daddy Duck') setTarget(l[0]);
@@ -303,7 +304,7 @@
 
             useEffect(() => {
                 if (!target) return;
-                const q = window.firebaseModules.query(window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'pbs'), window.firebaseModules.where('userLowName', '==', target.toLowerCase()));
+                const q = window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_pbs'), window.firebaseModules.where('userLowName', '==', target.toLowerCase()));
                 return window.firebaseModules.onSnapshot(q, (s) => {
                     const all = s.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     const byEx = {};
@@ -325,7 +326,7 @@
                 e.preventDefault();
                 if (!w || !r || !d) return;
                 try {
-                    await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'pbs'), {
+                    await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'duck_pbs'), {
                         userLowName: currentUser.toLowerCase(), exercise: ex, weight: parseFloat(w), reps: parseInt(r), recordDate: d, date: window.firebaseModules.serverTimestamp()
                     });
                     setW(''); setR('');
@@ -367,23 +368,19 @@
         const Leaderboard = ({ appId, db, isDaddyDuck, notify }) => {
             const [users, setUsers] = useState([]);
             useEffect(() => {
-                // ADDED SAFETY CHECK: Wait for user auth inside Leaderboard too
-                if (!appId || !db) return;
-                
-                const q = window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'users');
+                const q = window.firebaseModules.collection(db, 'duck_users');
                 return window.firebaseModules.onSnapshot(q, (s) => {
                     const u = s.docs.map(d => d.data());
                     u.sort((a,b) => (b.totalWorkouts || 0) - (a.totalWorkouts || 0));
                     setUsers(u);
                 }, (err) => {
-                    console.error("Leaderboard permission error (likely rules):", err);
-                    if (notify) notify("Erreur accès classement (règles?)", "error");
+                    if (notify && err.code === 'permission-denied') notify("Erreur accès classement (règles?)", "error");
                 });
-            }, [appId, db]);
+            }, [db, notify]);
 
             const reset = async (name) => {
                 try {
-                    await window.firebaseModules.updateDoc(window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'users', name.toLowerCase()), { points: 0, weeklyWorkouts: 0 });
+                    await window.firebaseModules.updateDoc(window.firebaseModules.doc(db, 'duck_users', name.toLowerCase()), { points: 0, weeklyWorkouts: 0 });
                     notify("Reset effectué.", "warning");
                 } catch(e) {}
             };
@@ -420,7 +417,7 @@
             const [isCompressing, setComp] = useState(false);
             const [processingId, setProcessingId] = useState(null); 
             const fileInputRef = useRef(null);
-            const [permissionError, setPermissionError] = useState(false); // New state for critical errors
+            const [permissionError, setPermissionError] = useState(false);
 
             const isDaddy = username.toLowerCase() === 'daddy duck';
 
@@ -456,13 +453,7 @@
                         }
                     } catch(e) { 
                         console.error(e); 
-                        let userMsg = e.message;
-                        if (e.code === 'auth/configuration-not-found' || e.message.includes('configuration-not-found')) {
-                             userMsg = "L'authentification est mal configurée. Avez-vous activé 'Anonyme' dans la console Firebase (Authentication > Sign-in method) ?";
-                        } else if (e.code === 'auth/admin-restricted-operation' || e.message.includes('admin-restricted-operation')) {
-                             userMsg = "Opération restreinte. Vérifiez que l'authentification 'Anonyme' est bien ACTIVÉE dans la console Firebase.";
-                        }
-                        setError("Erreur d'initialisation : " + userMsg); 
+                        setError("Erreur d'initialisation : " + e.message); 
                     }
                 };
                 start();
@@ -472,10 +463,10 @@
             const db = services.current.db;
             const mods = services.current.mods;
 
-            // --- DATA LISTENERS (Secured) ---
+            // --- DATA LISTENERS ---
             useEffect(() => {
                 if (!user || !username || !fbLoaded) return;
-                const userRef = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase());
+                const userRef = mods.doc(db, 'duck_users', username.toLowerCase());
                 const unsubUser = mods.onSnapshot(userRef, (s) => {
                     if (s.exists()) {
                         const d = s.data();
@@ -485,28 +476,20 @@
                         mods.setDoc(userRef, { name: username, points: 0, totalWorkouts: 0, weeklyWorkouts: 0, joinedAt: mods.serverTimestamp(), avatarId: 'classic' });
                         setShowAvatar(true);
                     }
-                }, (err) => {
-                    console.error("User sync error:", err);
-                    if (err.code === 'permission-denied') setPermissionError(true);
-                });
-                const qP = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), mods.where('userLowName', '==', username.toLowerCase()), mods.where('status', '==', 'pending'));
+                }, (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
+                const qP = mods.query(mods.collection(db, 'duck_purchases'), mods.where('userLowName', '==', username.toLowerCase()), mods.where('status', '==', 'pending'));
                 const unsubP = mods.onSnapshot(qP, (s) => setPurchases(s.docs.map(d => ({id:d.id, ...d.data()}))), (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
                 return () => { unsubUser(); unsubP(); };
             }, [user, username, fbLoaded]);
 
             useEffect(() => {
-                // Ensure we are logged in before trying to fetch global data
                 if (!fbLoaded || !user) return;
-                
-                const unsubR = mods.onSnapshot(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'rewards'), (s) => { if(s.empty) { /* Init default */ } setRewards(s.docs.map(d => ({id:d.id, ...d.data()}))); }, (err) => { 
-                    console.error("Rewards sync error", err);
-                    if (err.code === 'permission-denied') setPermissionError(true);
-                });
+                const unsubR = mods.onSnapshot(mods.collection(db, 'duck_rewards'), (s) => { setRewards(s.docs.map(d => ({id:d.id, ...d.data()}))); }, (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
                 let unsubV = () => {}, unsubD = () => {};
                 if (isDaddy) {
-                    const qV = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), mods.where('status', '==', 'pending'));
+                    const qV = mods.query(mods.collection(db, 'duck_validations'), mods.where('status', '==', 'pending'));
                     unsubV = mods.onSnapshot(qV, (s) => setValidations(s.docs.map(d => ({id:d.id, ...d.data()}))), (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
-                    const qD = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), mods.where('status', '==', 'pending'));
+                    const qD = mods.query(mods.collection(db, 'duck_purchases'), mods.where('status', '==', 'pending'));
                     unsubD = mods.onSnapshot(qD, (s) => setDeliveries(s.docs.map(d => ({id:d.id, ...d.data()}))), (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
                 }
                 return () => { unsubR(); unsubV(); unsubD(); };
@@ -521,21 +504,21 @@
             const sendPhoto = async () => {
                 if (!userData || !photo) return;
                 if (userData.weeklyWorkouts >= 3) return notify("Max hebdo atteint !", "warning");
-                try { await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), { userName: username, userLowName: username.toLowerCase(), photoBase64: photo, status: 'pending', timestamp: mods.serverTimestamp(), userAvatar: userData.avatarId }); setPhoto(null); notify("Envoyé !", "success"); } catch(e) { notify("Erreur envoi (Permissions?)", "error"); }
+                try { await mods.addDoc(mods.collection(db, 'duck_validations'), { userName: username, userLowName: username.toLowerCase(), photoBase64: photo, status: 'pending', timestamp: mods.serverTimestamp(), userAvatar: userData.avatarId }); setPhoto(null); notify("Envoyé !", "success"); } catch(e) { notify("Erreur envoi (Permissions?)", "error"); }
             };
             const buy = async (item) => {
                 if (userData.points < item.cost) return notify("Pas assez de canards", "error");
-                try { const ref = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase()); await mods.updateDoc(ref, { points: mods.increment(-item.cost) }); await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), { userName: username, userLowName: username.toLowerCase(), itemName: item.name, itemCost: item.cost, status: 'pending', timestamp: mods.serverTimestamp() }); notify("Acheté !", "success"); } catch(e) { notify("Erreur", "error"); }
+                try { const ref = mods.doc(db, 'duck_users', username.toLowerCase()); await mods.updateDoc(ref, { points: mods.increment(-item.cost) }); await mods.addDoc(mods.collection(db, 'duck_purchases'), { userName: username, userLowName: username.toLowerCase(), itemName: item.name, itemCost: item.cost, status: 'pending', timestamp: mods.serverTimestamp() }); notify("Acheté !", "success"); } catch(e) { notify("Erreur", "error"); }
             };
             const validate = async (val, status) => {
                 try {
-                    await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'validations', val.id), { status });
-                    if (status === 'approved') { const uRef = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', val.userLowName); await mods.updateDoc(uRef, { points: mods.increment(1), weeklyWorkouts: mods.increment(1), totalWorkouts: mods.increment(1), lastWorkout: mods.serverTimestamp() }); notify("Validé !", "success"); } else notify("Refusé.", "info");
+                    await mods.updateDoc(mods.doc(db, 'duck_validations', val.id), { status });
+                    if (status === 'approved') { const uRef = mods.doc(db, 'duck_users', val.userLowName); await mods.updateDoc(uRef, { points: mods.increment(1), weeklyWorkouts: mods.increment(1), totalWorkouts: mods.increment(1), lastWorkout: mods.serverTimestamp() }); notify("Validé !", "success"); } else notify("Refusé.", "info");
                 } catch(e) { notify("Erreur", "error"); }
             };
-            const deliver = async (p) => { try { await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'purchases', p.id), { status: 'delivered' }); notify("Livré !", "success"); } catch(e) { notify("Erreur", "error"); } };
-            const changeAvatar = async (k) => { try { await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase()), { avatarId: k }); setShowAvatar(false); notify("Avatar changé !", "success"); } catch(e) { notify("Erreur", "error"); } };
-            const handleRejectWorkout = async (val) => { try { await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'validations', val.id), { status: 'rejected' }); notify("Refusé.", "info"); } catch(e) { notify("Erreur", "error"); } };
+            const deliver = async (p) => { try { await mods.updateDoc(mods.doc(db, 'duck_purchases', p.id), { status: 'delivered' }); notify("Livré !", "success"); } catch(e) { notify("Erreur", "error"); } };
+            const changeAvatar = async (k) => { try { await mods.updateDoc(mods.doc(db, 'duck_users', username.toLowerCase()), { avatarId: k }); setShowAvatar(false); notify("Avatar changé !", "success"); } catch(e) { notify("Erreur", "error"); } };
+            const handleRejectWorkout = async (val) => { try { await mods.updateDoc(mods.doc(db, 'duck_validations', val.id), { status: 'rejected' }); notify("Refusé.", "info"); } catch(e) { notify("Erreur", "error"); } };
             const handleValidateWorkout = (val) => validate(val, 'approved');
             const handleDeliverItem = deliver;
             const handleSelectAvatar = changeAvatar;
@@ -556,16 +539,14 @@
                 );
             }
 
-            // Safety check for auth before rendering authenticated views
             if (!user) return <div className="min-h-screen bg-yellow-50 flex items-center justify-center font-bold text-yellow-600 animate-pulse">Reconnexion...</div>;
 
             return (
                 <div className="min-h-screen bg-gray-50 pb-24 relative font-sans">
-                    {/* BANDEAU ERREUR PERMISSIONS */}
                     {permissionError && (
                         <div className="firebase-error-banner">
-                            <strong>Erreur d'accès à la base de données !</strong><br/>
-                            Assurez-vous que vos règles de sécurité Firestore (onglet "Règles" dans la console Firebase) sont en mode test :<br/>
+                            <strong>Erreur d'accès à la base de données !</strong>
+                            <span>Allez sur la <a href="https://console.firebase.google.com/" target="_blank">Console Firebase</a> > Firestore Database > Règles, et collez :</span>
                             <code>allow read, write: if true;</code>
                         </div>
                     )}
