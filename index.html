@@ -11,6 +11,7 @@
         body { -webkit-tap-highlight-color: transparent; }
         #loading-fallback { position: fixed; inset:0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #FACC15; color: #000; font-weight: bold; font-size: 1.5rem; z-index: 9999; gap: 1rem; transition: opacity 0.5s; }
         #critical-error { display: none; position: fixed; inset: 0; background: #FEF2F2; color: #991B1B; padding: 2rem; z-index: 10000; overflow: auto; font-family: monospace; }
+        .firebase-error-banner { position: fixed; bottom: 0; left: 0; right: 0; background: #991B1B; color: white; padding: 1rem; font-size: 0.8rem; z-index: 10000; }
     </style>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -70,7 +71,7 @@
         const { useState, useEffect, useRef } = React;
 
         // --- CONFIGURATION ---
-        const firebaseConfig = {
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDfMT_0E2_D_Pq1Lu93y3BpFPa2Mh25Z3c",
             authDomain: "duck-gym.firebaseapp.com",
             projectId: "duck-gym",
@@ -79,7 +80,7 @@
             appId: "1:925726427622:web:e730e1cc87a91ecc102e27",
             measurementId: "G-H3BMWZ9VGL"
         };
-        const APP_ID = 'gym-duck-tracker-v1';
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gym-duck-tracker-v1';
 
         // --- ASSETS & CONSTANTES ---
         const Icon = ({ path, size = 24, className = "", color = "currentColor" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{ __html: path }} />;
@@ -109,13 +110,12 @@
             Users: (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />,
             Edit2: (p) => <Icon {...p} path='<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>' />
         };
+        const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
 
         const REWARD_ICONS = { 'gift': <Icons.Gift size={24} />, 'shirt': <Icons.Shirt size={24} />, 'coffee': <Icons.Coffee size={24} />, 'dumbbell': <Icons.Dumbbell size={24} />, 'tag': <Icons.Tag size={24} />, 'package': <Icons.Package size={24} /> };
         const REWARD_OPTIONS = [ { value: 'gift', label: 'Cadeau' }, { value: 'shirt', label: 'T-shirt/Vêtement' }, { value: 'coffee', label: 'Shaker/Boisson' }, { value: 'dumbbell', label: 'Matériel' }, { value: 'tag', label: 'Autre' } ];
         const EXERCISES_LIST = [ 'Développé Couché', 'Squat', 'Soulevé de Terre', 'Presse Militaire', 'Traction (Lest)', 'Dips (Lest)' ];
         const DUCK_VARIANTS = { 'classic': { name: 'Le Coin-mun', color: '#FACC15', item: null }, 'muscle': { name: 'Le Coin-Coin Musclé', color: '#FACC15', item: 'headband', eye: 'angry' }, 'secret': { name: 'Le Coin-fidentiel', color: '#FACC15', item: 'glasses', eye: 'normal' }, 'music': { name: 'Le Coin-positeur', color: '#FACC15', item: 'piano', eye: 'normal' }, 'napoleon': { name: 'Le Coin-quérant', color: '#FACC15', item: 'bicorne', eye: 'determined' }, 'crazy': { name: 'Coin-plètement à l\'ouest', color: '#FACC15', item: 'swirl', eye: 'spiral' }, 'wizard': { name: 'Le Coin-jurateur', color: '#A855F7', item: 'hat', eye: 'normal' }, 'devil': { name: 'Le Coin-fernal', color: '#EF4444', item: 'horns', eye: 'angry' }, 'cointreau': { name: 'Le Coin-treau', color: '#FACC15', item: 'bottle', eye: 'drunk' }, 'coince': { name: 'Le Coin-cé', color: '#FACC15', item: 'box', eye: 'worry' }, 'coinche': { name: 'Le Coin-che', color: '#FACC15', item: 'cards', eye: 'suspicious' }, 'coincidence': { name: 'Le Coin-cidence', color: '#FACC15', item: null, eye: 'surprised' }, 'bitcoin': { name: 'Le Bit-coin', color: '#FACC15', item: 'money', eye: 'dollar' }, 'recoin': { name: 'Le Re-coin', color: '#CA8A04', item: 'hole', eye: 'normal' }, 'coinfeur': { name: 'Le Coin-feur', color: '#FACC15', item: 'wig', eye: 'fabulous' }, 'coinplexe': { name: 'Le Coin-plexé', color: '#EF4444', item: 'sweat', eye: 'shy' }, 'consterne': { name: 'Le Coin-sterné', color: '#FACC15', item: 'fist', eye: 'yell' }, 'conflit': { name: 'Le Coin-flit', color: '#FACC15', item: 'knife', eye: 'angry' }, 'concentration': { name: 'Le Coin-centration', color: '#FACC15', item: 'book', eye: 'reading' }, 'consciencieux': { name: 'Le Coin-sciencieux', color: '#FACC15', item: 'ruler', eye: 'normal' }, 'confiance': { name: 'Le Coin-fiance absolue', color: '#FACC15', item: 'moto', eye: 'cool' }, 'confine': { name: 'Le Coin-finé', color: '#FACC15', item: 'house', eye: 'bored' }, 'nature': { name: 'Le Coin-necté nature', color: '#FACC15', item: 'tree', eye: 'peace' }, 'conchita': { name: 'Le Coin-chita', color: '#FACC15', item: 'dress', eye: 'lashes' }, 'conjuration': { name: 'Le Coin-jurations', color: '#A855F7', item: 'wand_smoke', eye: 'magic' }, };
-
-        const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
 
         const DuckAvatar = ({ id = 'classic', size = 40 }) => {
             const variant = DUCK_VARIANTS[id] || DUCK_VARIANTS['classic'];
@@ -367,13 +367,20 @@
         const Leaderboard = ({ appId, db, isDaddyDuck, notify }) => {
             const [users, setUsers] = useState([]);
             useEffect(() => {
+                // ADDED SAFETY CHECK: Wait for user auth inside Leaderboard too
+                if (!appId || !db) return;
+                
                 const q = window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'users');
                 return window.firebaseModules.onSnapshot(q, (s) => {
                     const u = s.docs.map(d => d.data());
                     u.sort((a,b) => (b.totalWorkouts || 0) - (a.totalWorkouts || 0));
                     setUsers(u);
+                }, (err) => {
+                    console.error("Leaderboard permission error (likely rules):", err);
+                    if (notify) notify("Erreur accès classement (règles?)", "error");
                 });
-            }, []);
+            }, [appId, db]);
+
             const reset = async (name) => {
                 try {
                     await window.firebaseModules.updateDoc(window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'users', name.toLowerCase()), { points: 0, weeklyWorkouts: 0 });
@@ -413,7 +420,8 @@
             const [isCompressing, setComp] = useState(false);
             const [processingId, setProcessingId] = useState(null); 
             const fileInputRef = useRef(null);
-            
+            const [permissionError, setPermissionError] = useState(false); // New state for critical errors
+
             const isDaddy = username.toLowerCase() === 'daddy duck';
 
             const waitForFirebase = () => new Promise(resolve => {
@@ -442,7 +450,10 @@
                         services.current = { auth: mods.getAuth(), db: mods.getFirestore(), mods };
                         setFb(true);
                         mods.onAuthStateChanged(services.current.auth, (u) => setUser(u));
-                        await mods.signInAnonymously(services.current.auth);
+                        
+                        if (!services.current.auth.currentUser) {
+                             await mods.signInAnonymously(services.current.auth);
+                        }
                     } catch(e) { 
                         console.error(e); 
                         let userMsg = e.message;
@@ -461,6 +472,7 @@
             const db = services.current.db;
             const mods = services.current.mods;
 
+            // --- DATA LISTENERS (Secured) ---
             useEffect(() => {
                 if (!user || !username || !fbLoaded) return;
                 const userRef = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase());
@@ -469,33 +481,36 @@
                         const d = s.data();
                         setUserData(d);
                         if (!d.avatarId && !isDaddy) setShowAvatar(true);
-                        if (d.lastWorkout) {
-                             const lastDate = new Date(d.lastWorkout.seconds * 1000);
-                             const diffDays = Math.ceil(Math.abs(new Date() - lastDate) / (1000 * 60 * 60 * 24));
-                             if (diffDays > 14 && d.points > 0) { notify("Semaine ratée = 0 pts !", "error"); mods.updateDoc(userRef, { points: 0 }); }
-                        }
                     } else {
                         mods.setDoc(userRef, { name: username, points: 0, totalWorkouts: 0, weeklyWorkouts: 0, joinedAt: mods.serverTimestamp(), avatarId: 'classic' });
                         setShowAvatar(true);
                     }
+                }, (err) => {
+                    console.error("User sync error:", err);
+                    if (err.code === 'permission-denied') setPermissionError(true);
                 });
                 const qP = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), mods.where('userLowName', '==', username.toLowerCase()), mods.where('status', '==', 'pending'));
-                const unsubP = mods.onSnapshot(qP, (s) => setPurchases(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                const unsubP = mods.onSnapshot(qP, (s) => setPurchases(s.docs.map(d => ({id:d.id, ...d.data()}))), (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
                 return () => { unsubUser(); unsubP(); };
             }, [user, username, fbLoaded]);
 
             useEffect(() => {
-                if (!fbLoaded) return;
-                const unsubR = mods.onSnapshot(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'rewards'), (s) => { if(s.empty) { /* Init default */ } setRewards(s.docs.map(d => ({id:d.id, ...d.data()}))); });
+                // Ensure we are logged in before trying to fetch global data
+                if (!fbLoaded || !user) return;
+                
+                const unsubR = mods.onSnapshot(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'rewards'), (s) => { if(s.empty) { /* Init default */ } setRewards(s.docs.map(d => ({id:d.id, ...d.data()}))); }, (err) => { 
+                    console.error("Rewards sync error", err);
+                    if (err.code === 'permission-denied') setPermissionError(true);
+                });
                 let unsubV = () => {}, unsubD = () => {};
                 if (isDaddy) {
                     const qV = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), mods.where('status', '==', 'pending'));
-                    unsubV = mods.onSnapshot(qV, (s) => setValidations(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                    unsubV = mods.onSnapshot(qV, (s) => setValidations(s.docs.map(d => ({id:d.id, ...d.data()}))), (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
                     const qD = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), mods.where('status', '==', 'pending'));
-                    unsubD = mods.onSnapshot(qD, (s) => setDeliveries(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                    unsubD = mods.onSnapshot(qD, (s) => setDeliveries(s.docs.map(d => ({id:d.id, ...d.data()}))), (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
                 }
                 return () => { unsubR(); unsubV(); unsubD(); };
-            }, [fbLoaded, isDaddy]);
+            }, [fbLoaded, isDaddy, user]);
 
             const handleLogin = (e) => {
                 e.preventDefault();
@@ -506,7 +521,7 @@
             const sendPhoto = async () => {
                 if (!userData || !photo) return;
                 if (userData.weeklyWorkouts >= 3) return notify("Max hebdo atteint !", "warning");
-                try { await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), { userName: username, userLowName: username.toLowerCase(), photoBase64: photo, status: 'pending', timestamp: mods.serverTimestamp(), userAvatar: userData.avatarId }); setPhoto(null); notify("Envoyé !", "success"); } catch(e) { notify("Erreur envoi", "error"); }
+                try { await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), { userName: username, userLowName: username.toLowerCase(), photoBase64: photo, status: 'pending', timestamp: mods.serverTimestamp(), userAvatar: userData.avatarId }); setPhoto(null); notify("Envoyé !", "success"); } catch(e) { notify("Erreur envoi (Permissions?)", "error"); }
             };
             const buy = async (item) => {
                 if (userData.points < item.cost) return notify("Pas assez de canards", "error");
@@ -535,14 +550,26 @@
                             <div className="flex justify-center mb-4"><DuckIcon size={64}/></div>
                             <h1 className="text-3xl font-bold text-gray-800 mb-6">Duck Training</h1>
                             <div className="bg-yellow-50 p-4 rounded-xl text-left text-sm text-yellow-900 mb-6 space-y-2 border border-yellow-200"><h3 className="font-bold text-center mb-2">🦆 Les Règles</h3><ul className="list-disc list-inside"><li>Photo = <strong>+1 Canard</strong>.</li><li>Max <strong>3</strong> / semaine.</li><li className="text-red-600 font-bold">Semaine ratée = 0 pts !</li></ul></div>
-                            <form onSubmit={handleLogin} className="space-y-4"><input name="name" className="w-full p-4 border-2 border-yellow-200 rounded-xl" placeholder="Ton Prénom" required /><button className="w-full bg-black text-white py-4 rounded-xl font-bold">Entrer</button></form>
+                            <form onSubmit={handleLogin} className="space-y-4"><input name="name" className="w-full p-4 border-2 border-yellow-200 rounded-xl" placeholder="Ton Prénom" required /><button className={`w-full py-4 rounded-xl font-bold transition ${!user ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`} disabled={!user}>{!user ? 'Connexion...' : 'Entrer'}</button></form>
                         </div>
                     </div>
                 );
             }
 
+            // Safety check for auth before rendering authenticated views
+            if (!user) return <div className="min-h-screen bg-yellow-50 flex items-center justify-center font-bold text-yellow-600 animate-pulse">Reconnexion...</div>;
+
             return (
                 <div className="min-h-screen bg-gray-50 pb-24 relative font-sans">
+                    {/* BANDEAU ERREUR PERMISSIONS */}
+                    {permissionError && (
+                        <div className="firebase-error-banner">
+                            <strong>Erreur d'accès à la base de données !</strong><br/>
+                            Assurez-vous que vos règles de sécurité Firestore (onglet "Règles" dans la console Firebase) sont en mode test :<br/>
+                            <code>allow read, write: if true;</code>
+                        </div>
+                    )}
+                    
                     {notif && <div className={`fixed top-4 left-4 right-4 z-50 p-4 rounded-xl shadow-lg text-white font-bold flex items-center gap-3 animate-bounce-in ${notif.type==='error'?'bg-red-500':notif.type==='success'?'bg-green-600':'bg-blue-600'}`}>{notif.type==='error'?<Icons.AlertTriangle/>:<Icons.Info/>} {notif.msg}</div>}
                     {showAvatar && !isDaddy && <div className="fixed inset-0 bg-yellow-400 z-50 flex flex-col items-center justify-center p-4 overflow-y-auto"><div className="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-lg text-center my-auto"><h2 className="text-2xl font-black text-gray-800 mb-4">Choisis ton canard</h2><div className="grid grid-cols-3 gap-4">{Object.entries(DUCK_VARIANTS).map(([k, v]) => <button key={k} onClick={() => changeAvatar(k)} className="flex flex-col items-center p-2 border rounded hover:bg-yellow-50"><DuckAvatar id={k} size={50}/><span className="text-xs font-bold mt-1">{v.name}</span></button>)}</div></div></div>}
                     
