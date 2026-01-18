@@ -166,8 +166,6 @@
             );
         };
 
-        const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
-
         const compressImage = (file) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -394,7 +392,7 @@
             );
         };
 
-        const App = () => {
+        const Main = () => {
             const [fbLoaded, setFb] = useState(false);
             const [error, setError] = useState(null);
             const services = useRef({});
