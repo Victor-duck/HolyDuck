@@ -118,7 +118,6 @@
             Users: (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />,
             Edit2: (p) => <Icon {...p} path='<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>' />
         };
-        const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
         const REWARD_ICONS = { 'gift': <Icons.Gift size={24} />, 'shirt': <Icons.Shirt size={24} />, 'coffee': <Icons.Coffee size={24} />, 'dumbbell': <Icons.Dumbbell size={24} />, 'tag': <Icons.Tag size={24} />, 'package': <Icons.Package size={24} /> };
         const REWARD_OPTIONS = [ { value: 'gift', label: 'Cadeau' }, { value: 'shirt', label: 'T-shirt/Vêtement' }, { value: 'coffee', label: 'Shaker/Boisson' }, { value: 'dumbbell', label: 'Matériel' }, { value: 'tag', label: 'Autre' } ];
         const EXERCISES_LIST = [ 'Développé Couché', 'Squat', 'Soulevé de Terre', 'Presse Militaire', 'Traction (Lest)', 'Dips (Lest)' ];
@@ -449,12 +448,18 @@
                         services.current = { auth: mods.getAuth(), db: mods.getFirestore(), mods };
                         setFb(true);
                         mods.onAuthStateChanged(services.current.auth, (u) => setUser(u));
-                        await mods.signInAnonymously(services.current.auth);
+                        
+                        // Check if already signed in to avoid restricted operation error
+                        if (!services.current.auth.currentUser) {
+                             await mods.signInAnonymously(services.current.auth);
+                        }
                     } catch(e) { 
                         console.error(e); 
                         let userMsg = e.message;
                         if (e.code === 'auth/configuration-not-found' || e.message.includes('configuration-not-found')) {
                              userMsg = "L'authentification est mal configurée. Avez-vous activé 'Anonyme' dans la console Firebase (Authentication > Sign-in method) ?";
+                        } else if (e.code === 'auth/admin-restricted-operation' || e.message.includes('admin-restricted-operation')) {
+                             userMsg = "Opération restreinte. Vérifiez que l'authentification 'Anonyme' est bien ACTIVÉE dans la console Firebase.";
                         }
                         setError("Erreur d'initialisation : " + userMsg); 
                     }
