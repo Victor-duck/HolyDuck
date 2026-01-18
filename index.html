@@ -111,6 +111,7 @@
             Users: (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />,
             Edit2: (p) => <Icon {...p} path='<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>' />
         };
+
         const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
 
         const REWARD_ICONS = { 'gift': <Icons.Gift size={24} />, 'shirt': <Icons.Shirt size={24} />, 'coffee': <Icons.Coffee size={24} />, 'dumbbell': <Icons.Dumbbell size={24} />, 'tag': <Icons.Tag size={24} />, 'package': <Icons.Package size={24} /> };
@@ -193,7 +194,7 @@
         const NavButton = ({ active, onClick, icon, label }) => <button onClick={onClick} className={`flex flex-col items-center gap-1 ${active ? 'text-yellow-500' : 'text-gray-400'}`}>{React.cloneElement(icon, { size: 24, strokeWidth: active ? 2.5 : 2 })}<span className="text-xs font-medium">{label}</span></button>;
 
         // --- COMPOSANTS DE L'APPLICATION ---
-        const ShopSection = ({ rewards, userData, handleBuy, isDaddyDuck, appId, db, notify }) => {
+        const ShopSection = ({ rewards, userData, handleBuy, isDaddyDuck, db, notify }) => {
             const [newR, setNewR] = useState({ name: '', cost: '', iconKey: 'gift' });
             const add = async (e) => {
                 e.preventDefault();
@@ -282,7 +283,7 @@
             );
         };
 
-        const PBSection = ({ currentUser, isDaddyDuck, appId, db, notify }) => {
+        const PBSection = ({ currentUser, isDaddyDuck, db, notify }) => {
             const [ex, setEx] = useState(EXERCISES_LIST[0]);
             const [w, setW] = useState('');
             const [r, setR] = useState('');
@@ -365,7 +366,7 @@
             );
         };
 
-        const Leaderboard = ({ appId, db, isDaddyDuck, notify }) => {
+        const Leaderboard = ({ db, isDaddyDuck, notify }) => {
             const [users, setUsers] = useState([]);
             useEffect(() => {
                 const q = window.firebaseModules.collection(db, 'duck_users');
