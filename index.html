@@ -10,7 +10,7 @@
         .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         body { -webkit-tap-highlight-color: transparent; }
         #loading-fallback { position: fixed; inset:0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #FACC15; color: #000; font-weight: bold; font-size: 1.5rem; z-index: 9999; gap: 1rem; transition: opacity 0.5s; }
-        #critical-error { display: none; position: fixed; inset: 0; background: #FEF2F2; color: #991B1B; padding: 2rem; z-index: 10000; overflow: auto; }
+        #critical-error { display: none; position: fixed; inset: 0; background: #FEF2F2; color: #991B1B; padding: 2rem; z-index: 10000; overflow: auto; font-family: monospace; }
     </style>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -20,4 +20,556 @@
     <script type="module">
         import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-        import { get
+        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        
+        window.firebaseModules = { 
+            initializeApp, getApps, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, 
+            getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, 
+            serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy 
+        };
+        window.firebaseReady = true;
+        window.dispatchEvent(new Event('firebase-ready'));
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    
+    <div id="loading-fallback">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-bounce"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
+        <span>Chargement...</span>
+    </div>
+    
+    <div id="critical-error"></div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const hideFallback = () => { 
+            const el = document.getElementById('loading-fallback'); 
+            if(el) { el.style.opacity = '0'; setTimeout(() => el.style.display = 'none', 500); }
+        };
+
+        class ErrorBoundary extends React.Component {
+            constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+            static getDerivedStateFromError(error) { return { hasError: true, error }; }
+            render() {
+                if (this.state.hasError) {
+                    hideFallback();
+                    return (
+                        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-red-50">
+                            <h1 className="text-2xl font-bold text-red-600 mb-4">Oups !</h1>
+                            <div className="bg-white p-4 rounded-xl border border-red-200 text-left font-mono text-xs text-red-800 overflow-auto max-w-full max-h-64">
+                                {this.state.error && this.state.error.toString()}
+                            </div>
+                            <button onClick={() => window.location.reload()} className="mt-6 px-6 py-3 bg-red-600 text-white rounded-xl font-bold">Réessayer</button>
+                        </div>
+                    );
+                }
+                return this.props.children;
+            }
+        }
+
+        const { useState, useEffect, useRef } = React;
+
+        // --- CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDfMT_0E2_D_Pq1Lu93y3BpFPa2Mh25Z3c",
+            authDomain: "duck-gym.firebaseapp.com",
+            projectId: "duck-gym",
+            storageBucket: "duck-gym.firebasestorage.app",
+            messagingSenderId: "925726427622",
+            appId: "1:925726427622:web:e730e1cc87a91ecc102e27",
+            measurementId: "G-H3BMWZ9VGL"
+        };
+        const APP_ID = 'gym-duck-tracker-v1';
+
+        // --- ASSETS & CONSTANTES ---
+        const Icon = ({ path, size = 24, className = "", color = "currentColor" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{ __html: path }} />;
+        const Icons = {
+            Camera: (p) => <Icon {...p} path='<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>' />,
+            ShoppingBag: (p) => <Icon {...p} path='<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>' />,
+            Trophy: (p) => <Icon {...p} path='<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>' />,
+            Activity: (p) => <Icon {...p} path='<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>' />,
+            AlertTriangle: (p) => <Icon {...p} path='<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>' />,
+            User: (p) => <Icon {...p} path='<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' />,
+            LogOut: (p) => <Icon {...p} path='<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>' />,
+            CheckCircle: (p) => <Icon {...p} path='<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' />,
+            XCircle: (p) => <Icon {...p} path='<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>' />,
+            Clock: (p) => <Icon {...p} path='<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' />,
+            Trash2: (p) => <Icon {...p} path='<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>' />,
+            Loader: (p) => <Icon {...p} path='<path d="M21 12a9 9 0 1 1-6.219-8.56"/>' />,
+            Info: (p) => <Icon {...p} path='<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>' />,
+            Package: (p) => <Icon {...p} path='<path d="m16.5 9.4-9-5.19"/><path d="m21 16-9 5.19-9-5.19"/><path d="m3.45 11.7 9 5.2"/><path d="M12 3v10.3"/><path d="M12 3 21 8"/><path d="M12 21 3.45 16.5"/><path d="M12 21v-7.6"/><path d="M2.37 7.6 12 2.6l9.63 5"/><path d="m7.5 14.6 9-5.19"/>' />,
+            Plus: (p) => <Icon {...p} path='<path d="M5 12h14"/><path d="M12 5v14"/>' />,
+            Shirt: (p) => <Icon {...p} path='<path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>' />,
+            Coffee: (p) => <Icon {...p} path='<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="1" y2="4"/><line x1="10" x2="10" y1="1" y2="4"/><line x1="14" x2="14" y1="1" y2="4"/>' />,
+            Dumbbell: (p) => <Icon {...p} path='<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>' />,
+            Gift: (p) => <Icon {...p} path='<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>' />,
+            Tag: (p) => <Icon {...p} path='<path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/>' />,
+            TrendingUp: (p) => <Icon {...p} path='<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>' />,
+            Calendar: (p) => <Icon {...p} path='<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' />,
+            Users: (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />,
+            Edit2: (p) => <Icon {...p} path='<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>' />
+        };
+        const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
+
+        const REWARD_ICONS = { 'gift': <Icons.Gift size={24} />, 'shirt': <Icons.Shirt size={24} />, 'coffee': <Icons.Coffee size={24} />, 'dumbbell': <Icons.Dumbbell size={24} />, 'tag': <Icons.Tag size={24} />, 'package': <Icons.Package size={24} /> };
+        const REWARD_OPTIONS = [ { value: 'gift', label: 'Cadeau' }, { value: 'shirt', label: 'T-shirt/Vêtement' }, { value: 'coffee', label: 'Shaker/Boisson' }, { value: 'dumbbell', label: 'Matériel' }, { value: 'tag', label: 'Autre' } ];
+        const EXERCISES_LIST = [ 'Développé Couché', 'Squat', 'Soulevé de Terre', 'Presse Militaire', 'Traction (Lest)', 'Dips (Lest)' ];
+        const DUCK_VARIANTS = { 'classic': { name: 'Le Coin-mun', color: '#FACC15', item: null }, 'muscle': { name: 'Le Coin-Coin Musclé', color: '#FACC15', item: 'headband', eye: 'angry' }, 'secret': { name: 'Le Coin-fidentiel', color: '#FACC15', item: 'glasses', eye: 'normal' }, 'music': { name: 'Le Coin-positeur', color: '#FACC15', item: 'piano', eye: 'normal' }, 'napoleon': { name: 'Le Coin-quérant', color: '#FACC15', item: 'bicorne', eye: 'determined' }, 'crazy': { name: 'Coin-plètement à l\'ouest', color: '#FACC15', item: 'swirl', eye: 'spiral' }, 'wizard': { name: 'Le Coin-jurateur', color: '#A855F7', item: 'hat', eye: 'normal' }, 'devil': { name: 'Le Coin-fernal', color: '#EF4444', item: 'horns', eye: 'angry' }, 'cointreau': { name: 'Le Coin-treau', color: '#FACC15', item: 'bottle', eye: 'drunk' }, 'coince': { name: 'Le Coin-cé', color: '#FACC15', item: 'box', eye: 'worry' }, 'coinche': { name: 'Le Coin-che', color: '#FACC15', item: 'cards', eye: 'suspicious' }, 'coincidence': { name: 'Le Coin-cidence', color: '#FACC15', item: null, eye: 'surprised' }, 'bitcoin': { name: 'Le Bit-coin', color: '#FACC15', item: 'money', eye: 'dollar' }, 'recoin': { name: 'Le Re-coin', color: '#CA8A04', item: 'hole', eye: 'normal' }, 'coinfeur': { name: 'Le Coin-feur', color: '#FACC15', item: 'wig', eye: 'fabulous' }, 'coinplexe': { name: 'Le Coin-plexé', color: '#EF4444', item: 'sweat', eye: 'shy' }, 'consterne': { name: 'Le Coin-sterné', color: '#FACC15', item: 'fist', eye: 'yell' }, 'conflit': { name: 'Le Coin-flit', color: '#FACC15', item: 'knife', eye: 'angry' }, 'concentration': { name: 'Le Coin-centration', color: '#FACC15', item: 'book', eye: 'reading' }, 'consciencieux': { name: 'Le Coin-sciencieux', color: '#FACC15', item: 'ruler', eye: 'normal' }, 'confiance': { name: 'Le Coin-fiance absolue', color: '#FACC15', item: 'moto', eye: 'cool' }, 'confine': { name: 'Le Coin-finé', color: '#FACC15', item: 'house', eye: 'bored' }, 'nature': { name: 'Le Coin-necté nature', color: '#FACC15', item: 'tree', eye: 'peace' }, 'conchita': { name: 'Le Coin-chita', color: '#FACC15', item: 'dress', eye: 'lashes' }, 'conjuration': { name: 'Le Coin-jurations', color: '#A855F7', item: 'wand_smoke', eye: 'magic' }, };
+
+        const DuckAvatar = ({ id = 'classic', size = 40 }) => {
+            const variant = DUCK_VARIANTS[id] || DUCK_VARIANTS['classic'];
+            const color = variant.color;
+            return (
+                <svg width={size} height={size} viewBox="0 0 40 40" fill="none" className="inline-block drop-shadow-md">
+                    {variant.item === 'hole' && <ellipse cx="20" cy="35" rx="15" ry="4" fill="#000" opacity="0.3" />}
+                    {variant.item === 'tree' && <g><rect x="2" y="20" width="4" height="15" fill="#78350F" /><circle cx="4" cy="20" r="8" fill="#16A34A" /></g>}
+                    {variant.item === 'house' && <path d="M5 20L20 8L35 20V38H5V20Z" fill="none" stroke="#000" strokeWidth="2" />}
+                    <path d="M8 26C8 30 12 34 18 34C24 34 32 32 32 27C32 23 28 22 26 22C26 22 28 16 31 16C32.5 16 34 14.5 34 12.5C34 10.5 32.5 9 31 9C27.5 9 22.5 11.5 22.5 17.5C22.5 22 18 22 15 22C10 22 8 23.5 8 26Z" fill={color} stroke="black" strokeWidth="1.5" strokeLinejoin="round"/>
+                    {variant.item === 'dress' && <path d="M12 28C12 28 15 36 25 36C35 36 32 28 32 28" fill="#EC4899" stroke="black" strokeWidth="1" />}
+                    <path d="M16 27C16 27 19 25 23 27" stroke="black" strokeWidth="1.5" strokeLinecap="round" />
+                    {variant.item === 'horns' && <><path d="M26 11L24 7" stroke="black" strokeWidth="2" /><path d="M34 11L36 7" stroke="black" strokeWidth="2" /></>}
+                    {variant.item === 'box' && <path d="M4 28H36V40H4V28Z" fill="#D97706" stroke="black" strokeWidth="1.5" />}
+                    {variant.eye === 'normal' && <circle cx="30" cy="13" r="1.5" fill="black" />}
+                    {variant.eye === 'surprised' && <><circle cx="30" cy="13" r="3" fill="white" stroke="black" strokeWidth="0.5"/><circle cx="30" cy="13" r="1" fill="black" /></>}
+                    {variant.eye === 'determined' && <><path d="M28 12L31 13" stroke="black" strokeWidth="1"/><circle cx="30" cy="13" r="1.5" fill="black" /></>}
+                    {variant.eye === 'angry' && <path d="M28 12L32 14" stroke="black" strokeWidth="1.5"/>}
+                    {variant.eye === 'spiral' && <g transform="translate(30 13)"><path d="M0 0C1.5 0 2.5 1.5 1.5 2.5C0.5 3.5 -1.5 2.5 -1.5 1C-1.5 -0.5 -0.5 -1.5 1 -1.5" stroke="black" strokeWidth="1" fill="none" /></g>}
+                    {variant.eye === 'drunk' && <><circle cx="29" cy="13" r="1" fill="black" /><circle cx="32" cy="12" r="1" fill="black" /></>}
+                    {variant.eye === 'worry' && <><circle cx="30" cy="13" r="1.5" fill="black" /><path d="M28 10L32 11" stroke="black" strokeWidth="1" /></>}
+                    {variant.eye === 'suspicious' && <path d="M28 13H32" stroke="black" strokeWidth="2" />}
+                    {variant.eye === 'dollar' && <text x="27" y="15" fontSize="6" fontWeight="bold" fill="green">$</text>}
+                    {variant.eye === 'fabulous' && <path d="M28 12Q30 10 32 12" stroke="black" strokeWidth="1" fill="none" />}
+                    {variant.eye === 'shy' && <path d="M28 14L32 14" stroke="black" strokeWidth="1" />}
+                    {variant.eye === 'yell' && <circle cx="30" cy="13" r="1" fill="black" />}
+                    {variant.eye === 'lashes' && <><circle cx="30" cy="13" r="1.5" fill="black" /><path d="M31 11L33 10M30 11L30 9" stroke="black" strokeWidth="0.5" /></>}
+                    {variant.eye === 'glasses' && <path d="M26 13H34" stroke="black" strokeWidth="3" strokeLinecap="round"/>}
+                    {variant.eye === 'cool' && <g><path d="M26 13H34" stroke="black" strokeWidth="4" /><path d="M26 13H34" stroke="black" strokeWidth="1" /></g>}
+                    {variant.eye === 'reading' && <g><circle cx="28" cy="13" r="2" stroke="black" fill="none" strokeWidth="0.5"/><circle cx="32" cy="13" r="2" stroke="black" fill="none" strokeWidth="0.5"/><path d="M30 13H30" stroke="black" strokeWidth="0.5"/></g>}
+                    {/* Bouche */}
+                    {variant.eye === 'yell' ? <circle cx="34" cy="16" r="3" fill="black" /> : <path d="M34 13.5C35.5 13.5 37 14 37 15C37 16 33 16.5 32 16" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" />}
+                    {/* Avant */}
+                    {variant.item === 'headband' && <path d="M25 10H35" stroke="#EF4444" strokeWidth="2" strokeLinecap="round"/>}
+                    {variant.item === 'hat' && <path d="M22 9L30 -2L38 9H22Z" fill="#6366F1" stroke="black" strokeWidth="1"/>}
+                    {variant.item === 'bicorne' && <path d="M20 10L24 4L36 4L40 10L30 8L20 10Z" fill="#1E293B" stroke="black" strokeWidth="1"/>}
+                    {variant.item === 'piano' && <g transform="translate(14, 26) rotate(-10)"><rect width="16" height="6" fill="white" stroke="black" strokeWidth="1"/><rect x="2" width="2" height="3" fill="black"/><rect x="6" width="2" height="3" fill="black"/><rect x="10" width="2" height="3" fill="black"/><rect x="12" width="2" height="3" fill="black"/></g>}
+                    {variant.item === 'swirl' && <path d="M20 6C18 4 16 6 18 8" stroke="black" strokeWidth="1" strokeDasharray="2 2"/>}
+                    {variant.item === 'bottle' && <g transform="translate(5, 20)"><rect width="6" height="10" fill="#D97706" stroke="black" /><rect x="2" y="-3" width="2" height="3" fill="#D97706" stroke="black" /></g>}
+                    {variant.item === 'cards' && <g transform="translate(5, 25)"><rect width="6" height="8" fill="white" stroke="black" transform="rotate(-20)" /><rect width="6" height="8" fill="white" stroke="black" x="4" /><rect width="6" height="8" fill="white" stroke="black" x="8" transform="rotate(20)" /></g>}
+                    {variant.item === 'money' && <circle cx="10" cy="30" r="5" fill="#FBBF24" stroke="black" />}
+                    {variant.item === 'wig' && <path d="M25 10C20 5 35 0 40 10" stroke="#EC4899" strokeWidth="6" strokeLinecap="round" />}
+                    {variant.item === 'sweat' && <path d="M35 8Q35 12 37 10" stroke="#0EA5E9" strokeWidth="1.5" fill="none" />}
+                    {variant.item === 'fist' && <g transform="translate(10, 15)"><circle r="4" fill="#FACC15" stroke="black" /><path d="M0 4L0 15" stroke="black" strokeWidth="2" /></g>}
+                    {variant.item === 'knife' && <g transform="translate(5, 25) rotate(-45)"><rect width="12" height="3" fill="#94A3B8" stroke="black" /><rect width="4" height="3" fill="#475569" stroke="black" /></g>}
+                    {variant.item === 'book' && <rect x="10" y="30" width="14" height="8" fill="#3B82F6" stroke="black" />}
+                    {variant.item === 'ruler' && <rect x="5" y="25" width="20" height="4" fill="#FBBF24" stroke="black" transform="rotate(-30)" />}
+                    {variant.item === 'moto' && <path d="M10 30L20 28L30 30" stroke="black" strokeWidth="2" fill="none" />}
+                    {variant.item === 'wand_smoke' && <g><line x1="5" y1="35" x2="15" y2="25" stroke="#7C3AED" strokeWidth="2" /><circle cx="17" cy="23" r="2" fill="#A855F7" opacity="0.6" /><circle cx="19" cy="21" r="3" fill="#A855F7" opacity="0.4" /></g>}
+                </svg>
+            );
+        };
+
+        const compressImage = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX = 600; 
+                    let w = img.width, h = img.height;
+                    if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } else { if (h > MAX) { w *= MAX/h; h = MAX; } }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.onerror = () => reject(new Error("Image invalide"));
+            };
+            reader.onerror = () => reject(new Error("Erreur lecture"));
+        });
+
+        const NavButton = ({ active, onClick, icon, label }) => <button onClick={onClick} className={`flex flex-col items-center gap-1 ${active ? 'text-yellow-500' : 'text-gray-400'}`}>{React.cloneElement(icon, { size: 24, strokeWidth: active ? 2.5 : 2 })}<span className="text-xs font-medium">{label}</span></button>;
+
+        // --- COMPOSANTS DE L'APPLICATION ---
+        const ShopSection = ({ rewards, userData, handleBuy, isDaddyDuck, appId, db, notify }) => {
+            const [newR, setNewR] = useState({ name: '', cost: '', iconKey: 'gift' });
+            const add = async (e) => {
+                e.preventDefault();
+                if (!newR.name || !newR.cost) return;
+                try {
+                    await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'rewards'), { name: newR.name, cost: parseInt(newR.cost), iconKey: newR.iconKey });
+                    setNewR({ name: '', cost: '', iconKey: 'gift' });
+                    notify("Ajouté !", "success");
+                } catch (e) { notify("Erreur.", "error"); }
+            };
+            const del = async (id) => {
+                try {
+                    await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'rewards', id));
+                    notify("Supprimé.", "success");
+                } catch(e) { notify("Erreur.", "error"); }
+            };
+            return (
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold px-2">La Boutique</h2>
+                    {isDaddyDuck && (
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-yellow-200 mb-6">
+                            <h3 className="font-bold text-sm text-yellow-800 mb-2 flex items-center gap-2"><Icons.Plus size={16}/> Ajouter</h3>
+                            <form onSubmit={add} className="space-y-3">
+                                <input className="w-full border rounded p-2 text-sm" placeholder="Nom" value={newR.name} onChange={e => setNewR({...newR, name: e.target.value})} />
+                                <div className="flex gap-2">
+                                    <input type="number" className="w-1/3 border rounded p-2 text-sm" placeholder="Prix" value={newR.cost} onChange={e => setNewR({...newR, cost: e.target.value})} />
+                                    <select className="w-2/3 border rounded p-2 text-sm" value={newR.iconKey} onChange={e => setNewR({...newR, iconKey: e.target.value})}>{REWARD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+                                </div>
+                                <button className="w-full bg-yellow-400 font-bold py-2 rounded text-sm">Ajouter</button>
+                            </form>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 gap-4">
+                        {rewards.map(r => (
+                            <div key={r.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-3xl bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full text-gray-600">{REWARD_ICONS[r.iconKey] || <Icons.Gift />}</span>
+                                    <div><h3 className="font-bold text-gray-800">{r.name}</h3><p className="text-yellow-600 font-bold text-sm flex items-center gap-1">{r.cost} <DuckIcon size={14} /></p></div>
+                                </div>
+                                {isDaddyDuck ? <button onClick={() => del(r.id)} className="text-red-500 p-2"><Icons.Trash2 size={20}/></button> : <button onClick={() => handleBuy(r)} disabled={userData?.points < r.cost} className={`px-4 py-2 rounded-lg font-bold text-sm ${userData?.points >= r.cost ? 'bg-black text-white' : 'bg-gray-200 text-gray-400'}`}>Acheter</button>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const SpiderChart = ({ data }) => {
+            const size = 300, center = size/2, radius = 100, labels = EXERCISES_LIST;
+            const maxVal = Math.max(...Object.values(data), 100);
+            const pts = labels.map((l, i) => {
+                const a = (Math.PI*2*i)/labels.length - Math.PI/2;
+                const r = ((data[l]||0)/maxVal)*radius;
+                return `${center + r*Math.cos(a)},${center + r*Math.sin(a)}`;
+            }).join(' ');
+            return (
+                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                    {[0.25, 0.5, 0.75, 1].map(l => <polygon key={l} points={labels.map((_, i) => { const a = (Math.PI*2*i)/labels.length - Math.PI/2; const r = radius*l; return `${center+r*Math.cos(a)},${center+r*Math.sin(a)}`; }).join(' ')} fill="none" stroke="#e5e7eb" strokeWidth="1" />)}
+                    {labels.map((_, i) => { const a = (Math.PI*2*i)/labels.length - Math.PI/2; return <line key={i} x1={center} y1={center} x2={center+radius*Math.cos(a)} y2={center+radius*Math.sin(a)} stroke="#e5e7eb" strokeWidth="1" />; })}
+                    <polygon points={pts} fill="rgba(250, 204, 21, 0.5)" stroke="#FACC15" strokeWidth="2" />
+                    <g transform={`translate(${center-12},${center-12})`}><DuckIcon size={24}/></g>
+                    {labels.map((l, i) => { 
+                        const a = (Math.PI*2*i)/labels.length - Math.PI/2; 
+                        const x = center + (radius+25)*Math.cos(a); 
+                        const y = center + (radius+25)*Math.sin(a); 
+                        return <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" className="text-[10px] fill-gray-500 font-bold">{l.split(' ')[0].substring(0,8)}</text>; 
+                    })}
+                </svg>
+            );
+        };
+
+        const ScatterChart = ({ data }) => {
+            const w = 300, h = 200, pad = 25, MAX_R = 20, MAX_W = 200;
+            const getX = r => pad + ((r||0)/MAX_R)*(w-2*pad);
+            const getY = wg => h - pad - ((wg||0)/MAX_W)*(h-2*pad);
+            return (
+                <div className="w-full overflow-hidden bg-gray-50 rounded-lg border border-gray-100 relative">
+                    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto">
+                        {[0,50,100,150,200].map(wg => <line key={wg} x1={pad} y1={getY(wg)} x2={w-pad} y2={getY(wg)} stroke="#e5e7eb" strokeWidth="1" />)}
+                        <text x={w/2} y={h-5} textAnchor="middle" fontSize="10" fill="#9ca3af">Reps</text>
+                        <text x={5} y={h/2} textAnchor="middle" fontSize="10" fill="#9ca3af" transform={`rotate(-90, 5, ${h/2})`}>Kg</text>
+                        {data.length > 1 && <polyline points={data.map(d => `${getX(d.reps)},${getY(d.weight)}`).join(' ')} fill="none" stroke="#FACC15" strokeWidth="2" />}
+                        {data.map((d, i) => <circle key={i} cx={getX(d.reps)} cy={getY(d.weight)} r="4" fill="#FACC15" stroke="black" strokeWidth="1"><title>{d.weight}kg x {d.reps}</title></circle>)}
+                    </svg>
+                </div>
+            );
+        };
+
+        const PBSection = ({ currentUser, isDaddyDuck, appId, db, notify }) => {
+            const [ex, setEx] = useState(EXERCISES_LIST[0]);
+            const [w, setW] = useState('');
+            const [r, setR] = useState('');
+            const [d, setD] = useState(new Date().toISOString().split('T')[0]);
+            const [hist, setHist] = useState([]);
+            const [spider, setSpider] = useState({});
+            const [users, setUsers] = useState([]);
+            const [target, setTarget] = useState(currentUser);
+
+            useEffect(() => {
+                if (isDaddyDuck) {
+                    window.firebaseModules.getDocs(window.firebaseModules.query(window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'users'))).then(s => {
+                        const l = s.docs.map(doc => doc.data().name);
+                        setUsers(l);
+                        if (l.length && target === 'Daddy Duck') setTarget(l[0]);
+                    });
+                } else setTarget(currentUser);
+            }, [isDaddyDuck]);
+
+            useEffect(() => {
+                if (!target) return;
+                const q = window.firebaseModules.query(window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'pbs'), window.firebaseModules.where('userLowName', '==', target.toLowerCase()));
+                return window.firebaseModules.onSnapshot(q, (s) => {
+                    const all = s.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const byEx = {};
+                    EXERCISES_LIST.forEach(e => byEx[e] = 0);
+                    const grp = {};
+                    all.forEach(p => { if (!grp[p.exercise]) grp[p.exercise] = []; grp[p.exercise].push(p); });
+                    Object.keys(grp).forEach(k => {
+                        const sorted = grp[k].sort((a,b) => (b.date?.seconds || 0) - (a.date?.seconds || 0));
+                        if(sorted.length) byEx[k] = sorted[0].weight * (sorted[0].reps || 1);
+                    });
+                    setSpider(byEx);
+                    const filt = all.filter(i => i.exercise === ex);
+                    filt.sort((a,b) => (a.date?.seconds || 0) - (b.date?.seconds || 0));
+                    setHist(filt);
+                });
+            }, [ex, target]);
+
+            const add = async (e) => {
+                e.preventDefault();
+                if (!w || !r || !d) return;
+                try {
+                    await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'pbs'), {
+                        userLowName: currentUser.toLowerCase(), exercise: ex, weight: parseFloat(w), reps: parseInt(r), recordDate: d, date: window.firebaseModules.serverTimestamp()
+                    });
+                    setW(''); setR('');
+                    notify("Ajouté !", "success");
+                } catch(e) { notify("Erreur.", "error"); }
+            };
+
+            const currentMax = hist.length > 0 ? Math.max(...hist.map(h => h.weight)) : 0;
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center px-2">
+                        <h2 className="text-2xl font-bold flex gap-2"><Icons.TrendingUp className="text-yellow-500"/> Stats</h2>
+                        {isDaddyDuck && <select className="border rounded p-2" value={target} onChange={e => setTarget(e.target.value)}>{users.map(u => <option key={u} value={u}>{u}</option>)}</select>}
+                    </div>
+                    <div className="bg-white p-4 rounded-2xl border"><h3 className="text-center font-bold mb-4">{target} mooved weight</h3><div className="flex justify-center"><SpiderChart data={spider} /></div></div>
+                    {!isDaddyDuck && (
+                        <div className="bg-white p-4 rounded-2xl border space-y-4">
+                            <h3>Ajouter une perf</h3>
+                            <select className="w-full border p-3 rounded" value={ex} onChange={e => setEx(e.target.value)}>{EXERCISES_LIST.map(o => <option key={o} value={o}>{o}</option>)}</select>
+                            <form onSubmit={add} className="space-y-3">
+                                <div className="flex gap-2"><input type="number" step="0.5" placeholder="Poids" className="w-1/2 border p-3 rounded" value={w} onChange={e => setW(e.target.value)} /><input type="number" placeholder="Reps" className="w-1/2 border p-3 rounded" value={r} onChange={e => setR(e.target.value)} /></div>
+                                <input type="date" className="w-full border p-3 rounded" value={d} onChange={e => setD(e.target.value)} />
+                                <button className="w-full bg-black text-white p-3 rounded font-bold">Ajouter</button>
+                            </form>
+                        </div>
+                    )}
+                    {isDaddyDuck && <div className="bg-white p-4 rounded-xl"><select className="w-full border p-2 rounded" value={ex} onChange={e => setEx(e.target.value)}>{EXERCISES_LIST.map(o => <option key={o} value={o}>{o}</option>)}</select></div>}
+                    {hist.length > 0 ? (
+                        <div className="bg-white p-4 rounded-2xl border">
+                            <div className="flex justify-between mb-4"><h3 className="font-bold">{ex}</h3><span className="text-2xl font-black text-yellow-500">Max: {currentMax}kg</span></div>
+                            <ScatterChart data={hist} />
+                        </div>
+                    ) : <div className="text-center py-8 text-gray-400 bg-white rounded-2xl border border-dashed">Aucune donnée</div>}
+                </div>
+            );
+        };
+
+        const Leaderboard = ({ appId, db, isDaddyDuck, notify }) => {
+            const [users, setUsers] = useState([]);
+            useEffect(() => {
+                const q = window.firebaseModules.collection(db, 'artifacts', appId, 'public', 'data', 'users');
+                return window.firebaseModules.onSnapshot(q, (s) => {
+                    const u = s.docs.map(d => d.data());
+                    u.sort((a,b) => (b.totalWorkouts || 0) - (a.totalWorkouts || 0));
+                    setUsers(u);
+                });
+            }, []);
+            const reset = async (name) => {
+                try {
+                    await window.firebaseModules.updateDoc(window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'users', name.toLowerCase()), { points: 0, weeklyWorkouts: 0 });
+                    notify("Reset effectué.", "warning");
+                } catch(e) {}
+            };
+            return (
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold px-2">Classement</h2>
+                    <div className="bg-white rounded-2xl border overflow-hidden">
+                        {users.map((u, i) => (
+                            <div key={u.name} className="flex justify-between p-4 border-b">
+                                <div className="flex items-center gap-4"><span className="font-bold w-6 text-center">{i+1}</span><div className="flex items-center gap-3"><DuckAvatar id={u.avatarId} size={32}/><div><p className="font-bold">{u.name}</p><p className="text-xs text-gray-500">{u.totalWorkouts||0} séances</p></div></div></div>
+                                <div className="flex items-center gap-3"><span className="font-bold text-yellow-600 flex gap-1">{u.points} <DuckIcon size={14}/></span>{isDaddyDuck && <button onClick={() => reset(u.name)} className="text-xs text-red-500 border px-2 py-1 rounded">Reset</button>}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const Main = () => {
+            const [fbLoaded, setFb] = useState(false);
+            const [error, setError] = useState(null);
+            const services = useRef({});
+            const [user, setUser] = useState(null);
+            const [username, setUsername] = useState('');
+            const [userData, setUserData] = useState(null);
+            const [activeTab, setTab] = useState('home');
+            const [notif, setNotif] = useState(null);
+            const [showAvatar, setShowAvatar] = useState(false);
+            const [rewards, setRewards] = useState([]);
+            const [validations, setValidations] = useState([]);
+            const [deliveries, setDeliveries] = useState([]);
+            const [purchases, setPurchases] = useState([]);
+            const [photo, setPhoto] = useState(null);
+            const [isCompressing, setComp] = useState(false);
+            const [processingId, setProcessingId] = useState(null); 
+            const fileInputRef = useRef(null);
+            
+            const isDaddy = username.toLowerCase() === 'daddy duck';
+
+            const waitForFirebase = () => new Promise(resolve => {
+                if (window.firebaseReady) resolve();
+                else window.addEventListener('firebase-ready', resolve);
+            });
+
+            useEffect(() => {
+                const start = async () => {
+                    const timer = setTimeout(() => {
+                        const el = document.getElementById('loading-fallback');
+                        if (el) {
+                            el.innerHTML = "<span>⚠️ Erreur de connexion</span><span style='font-size:0.8rem'>Vérifiez votre internet ou rechargez</span>";
+                            el.style.backgroundColor = "#FECACA"; // Rouge clair
+                            el.style.color = "#B91C1C";
+                        }
+                    }, 8000);
+                    
+                    await waitForFirebase();
+                    clearTimeout(timer);
+                    hideFallback();
+
+                    const mods = window.firebaseModules;
+                    try {
+                        if (!mods.getApps().length) mods.initializeApp(firebaseConfig);
+                        services.current = { auth: mods.getAuth(), db: mods.getFirestore(), mods };
+                        setFb(true);
+                        mods.onAuthStateChanged(services.current.auth, (u) => setUser(u));
+                        await mods.signInAnonymously(services.current.auth);
+                    } catch(e) { 
+                        console.error(e); 
+                        let userMsg = e.message;
+                        if (e.code === 'auth/configuration-not-found' || e.message.includes('configuration-not-found')) {
+                             userMsg = "L'authentification est mal configurée. Avez-vous activé 'Anonyme' dans la console Firebase (Authentication > Sign-in method) ?";
+                        } else if (e.code === 'auth/admin-restricted-operation' || e.message.includes('admin-restricted-operation')) {
+                             userMsg = "Opération restreinte. Vérifiez que l'authentification 'Anonyme' est bien ACTIVÉE dans la console Firebase.";
+                        }
+                        setError("Erreur d'initialisation : " + userMsg); 
+                    }
+                };
+                start();
+            }, []);
+
+            const notify = (msg, type = 'info') => { setNotif({ msg, type }); setTimeout(() => setNotif(null), 4000); };
+            const db = services.current.db;
+            const mods = services.current.mods;
+
+            useEffect(() => {
+                if (!user || !username || !fbLoaded) return;
+                const userRef = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase());
+                const unsubUser = mods.onSnapshot(userRef, (s) => {
+                    if (s.exists()) {
+                        const d = s.data();
+                        setUserData(d);
+                        if (!d.avatarId && !isDaddy) setShowAvatar(true);
+                        if (d.lastWorkout) {
+                             const lastDate = new Date(d.lastWorkout.seconds * 1000);
+                             const diffDays = Math.ceil(Math.abs(new Date() - lastDate) / (1000 * 60 * 60 * 24));
+                             if (diffDays > 14 && d.points > 0) { notify("Semaine ratée = 0 pts !", "error"); mods.updateDoc(userRef, { points: 0 }); }
+                        }
+                    } else {
+                        mods.setDoc(userRef, { name: username, points: 0, totalWorkouts: 0, weeklyWorkouts: 0, joinedAt: mods.serverTimestamp(), avatarId: 'classic' });
+                        setShowAvatar(true);
+                    }
+                });
+                const qP = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), mods.where('userLowName', '==', username.toLowerCase()), mods.where('status', '==', 'pending'));
+                const unsubP = mods.onSnapshot(qP, (s) => setPurchases(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                return () => { unsubUser(); unsubP(); };
+            }, [user, username, fbLoaded]);
+
+            useEffect(() => {
+                if (!fbLoaded) return;
+                const unsubR = mods.onSnapshot(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'rewards'), (s) => { if(s.empty) { /* Init default */ } setRewards(s.docs.map(d => ({id:d.id, ...d.data()}))); });
+                let unsubV = () => {}, unsubD = () => {};
+                if (isDaddy) {
+                    const qV = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), mods.where('status', '==', 'pending'));
+                    unsubV = mods.onSnapshot(qV, (s) => setValidations(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                    const qD = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), mods.where('status', '==', 'pending'));
+                    unsubD = mods.onSnapshot(qD, (s) => setDeliveries(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                }
+                return () => { unsubR(); unsubV(); unsubD(); };
+            }, [fbLoaded, isDaddy]);
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                let n = e.target.name.value.trim().replace(/[/#\.\[\]\*\`]/g, '');
+                if (n) { if (n.toLowerCase() === 'daddy duck') setTab('admin'); setUsername(n); }
+            };
+            const handleFile = async (e) => { if (e.target.files[0]) { setComp(true); try { const b64 = await compressImage(e.target.files[0]); setPhoto(b64); } catch(err) { notify("Erreur image", "error"); } setComp(false); } };
+            const sendPhoto = async () => {
+                if (!userData || !photo) return;
+                if (userData.weeklyWorkouts >= 3) return notify("Max hebdo atteint !", "warning");
+                try { await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), { userName: username, userLowName: username.toLowerCase(), photoBase64: photo, status: 'pending', timestamp: mods.serverTimestamp(), userAvatar: userData.avatarId }); setPhoto(null); notify("Envoyé !", "success"); } catch(e) { notify("Erreur envoi", "error"); }
+            };
+            const buy = async (item) => {
+                if (userData.points < item.cost) return notify("Pas assez de canards", "error");
+                try { const ref = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase()); await mods.updateDoc(ref, { points: mods.increment(-item.cost) }); await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), { userName: username, userLowName: username.toLowerCase(), itemName: item.name, itemCost: item.cost, status: 'pending', timestamp: mods.serverTimestamp() }); notify("Acheté !", "success"); } catch(e) { notify("Erreur", "error"); }
+            };
+            const validate = async (val, status) => {
+                try {
+                    await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'validations', val.id), { status });
+                    if (status === 'approved') { const uRef = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', val.userLowName); await mods.updateDoc(uRef, { points: mods.increment(1), weeklyWorkouts: mods.increment(1), totalWorkouts: mods.increment(1), lastWorkout: mods.serverTimestamp() }); notify("Validé !", "success"); } else notify("Refusé.", "info");
+                } catch(e) { notify("Erreur", "error"); }
+            };
+            const deliver = async (p) => { try { await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'purchases', p.id), { status: 'delivered' }); notify("Livré !", "success"); } catch(e) { notify("Erreur", "error"); } };
+            const changeAvatar = async (k) => { try { await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase()), { avatarId: k }); setShowAvatar(false); notify("Avatar changé !", "success"); } catch(e) { notify("Erreur", "error"); } };
+            const handleRejectWorkout = async (val) => { try { await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'validations', val.id), { status: 'rejected' }); notify("Refusé.", "info"); } catch(e) { notify("Erreur", "error"); } };
+            const handleValidateWorkout = (val) => validate(val, 'approved');
+            const handleDeliverItem = deliver;
+            const handleSelectAvatar = changeAvatar;
+
+            if (error) return <div className="min-h-screen bg-red-50 flex items-center justify-center p-4 text-red-600 font-bold text-center">{error}</div>;
+            if (!fbLoaded) return <div className="min-h-screen bg-yellow-50 flex items-center justify-center font-bold text-yellow-600 animate-pulse">Chargement...</div>;
+
+            if (!username) {
+                return (
+                    <div className="min-h-screen bg-yellow-400 flex flex-col items-center justify-center p-4">
+                        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+                            <div className="flex justify-center mb-4"><DuckIcon size={64}/></div>
+                            <h1 className="text-3xl font-bold text-gray-800 mb-6">Duck Training</h1>
+                            <div className="bg-yellow-50 p-4 rounded-xl text-left text-sm text-yellow-900 mb-6 space-y-2 border border-yellow-200"><h3 className="font-bold text-center mb-2">🦆 Les Règles</h3><ul className="list-disc list-inside"><li>Photo = <strong>+1 Canard</strong>.</li><li>Max <strong>3</strong> / semaine.</li><li className="text-red-600 font-bold">Semaine ratée = 0 pts !</li></ul></div>
+                            <form onSubmit={handleLogin} className="space-y-4"><input name="name" className="w-full p-4 border-2 border-yellow-200 rounded-xl" placeholder="Ton Prénom" required /><button className="w-full bg-black text-white py-4 rounded-xl font-bold">Entrer</button></form>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50 pb-24 relative font-sans">
+                    {notif && <div className={`fixed top-4 left-4 right-4 z-50 p-4 rounded-xl shadow-lg text-white font-bold flex items-center gap-3 animate-bounce-in ${notif.type==='error'?'bg-red-500':notif.type==='success'?'bg-green-600':'bg-blue-600'}`}>{notif.type==='error'?<Icons.AlertTriangle/>:<Icons.Info/>} {notif.msg}</div>}
+                    {showAvatar && !isDaddy && <div className="fixed inset-0 bg-yellow-400 z-50 flex flex-col items-center justify-center p-4 overflow-y-auto"><div className="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-lg text-center my-auto"><h2 className="text-2xl font-black text-gray-800 mb-4">Choisis ton canard</h2><div className="grid grid-cols-3 gap-4">{Object.entries(DUCK_VARIANTS).map(([k, v]) => <button key={k} onClick={() => changeAvatar(k)} className="flex flex-col items-center p-2 border rounded hover:bg-yellow-50"><DuckAvatar id={k} size={50}/><span className="text-xs font-bold mt-1">{v.name}</span></button>)}</div></div></div>}
+                    
+                    <div className="bg-yellow-400 p-6 rounded-b-3xl shadow-lg sticky top-0 z-10">
+                        <div className="flex justify-between items-center mb-4">
+                            <div className="flex items-center gap-3"><div className="bg-white p-1 rounded-full shadow-sm cursor-pointer" onClick={() => !isDaddy && setShowAvatar(true)}><DuckAvatar id={userData?.avatarId} size={40}/></div><span className="font-bold text-lg flex items-center gap-2">{username} {!isDaddy && <Icons.Edit2 size={14}/>}</span></div>
+                            <button onClick={() => setUsername('')}><Icons.LogOut size={20}/></button>
+                        </div>
+                        {!isDaddy && userData && <div><div className="flex justify-between items-end text-white"><div><p className="text-yellow-900 font-medium opacity-80">Mes Points</p><div className="flex items-center gap-2 text-4xl font-black text-black"><DuckIcon size={32}/> {userData.points}</div></div><div className="text-right text-yellow-900"><p className="text-sm font-bold">{userData.weeklyWorkouts}/3 sem.</p></div></div>{purchases.length > 0 && <div className="mt-4 bg-yellow-500/20 p-2 rounded text-xs font-bold text-yellow-900 flex gap-2 overflow-x-auto">{purchases.map(p => <span key={p.id} className="bg-white px-2 py-1 rounded shadow-sm shrink-0">{p.itemName}</span>)}</div>}</div>}
+                    </div>
+
+                    <div className="p-4 max-w-md mx-auto space-y-6 mt-4">
+                        {isDaddy && activeTab === 'admin' && <div className="space-y-6"><div><h3 className="font-bold text-lg text-gray-700 mb-2">Livraisons ({deliveries.length})</h3>{deliveries.map(p => <div key={p.id} className="bg-blue-50 p-3 rounded-xl border border-blue-100 flex justify-between items-center mb-2"><div><p className="font-bold">{p.userName}</p><p className="text-sm">{p.itemName}</p></div><button onClick={() => deliver(p)} className="bg-blue-600 text-white px-3 py-1 rounded shadow">Livré</button></div>)}</div><hr/><div><h3 className="font-bold text-lg text-gray-700 mb-2">Validations ({validations.length})</h3>{validations.map(v => <div key={v.id} className="bg-white p-3 rounded-xl shadow-sm border mb-4"><div className="flex justify-between mb-2"><span className="font-bold">{v.userName}</span><span className="text-xs text-gray-400">{v.timestamp?.toDate().toLocaleTimeString()}</span></div><img src={v.photoBase64} className="rounded mb-2 max-h-48 object-contain bg-black w-full"/><div className="flex gap-2"><button onClick={() => handleRejectWorkout(v)} disabled={!!processingId} className="flex-1 border border-red-200 text-red-600 py-2 rounded font-bold">Refuser</button><button onClick={() => handleValidateWorkout(v)} disabled={!!processingId} className="flex-1 bg-yellow-400 py-2 rounded font-bold">Valider</button></div></div>)}</div></div>}
+                        {!isDaddy && activeTab === 'home' && <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center"><h2 className="text-xl font-bold mb-4">Gagner un canard</h2>{!photo ? <div className={`border-2 border-dashed rounded-xl p-8 relative ${isCompressing ? 'bg-gray-50' : 'cursor-pointer'}`}><input type="file" accept="image/*" className="absolute inset-0 opacity-0 w-full h-full" onChange={handleFile} disabled={isCompressing} />{isCompressing ? <Icons.Loader className="animate-spin mx-auto"/> : <Icons.Camera className="mx-auto text-gray-400" size={32}/>}<p className="mt-2 text-sm font-bold text-gray-500">{isCompressing ? "Compression..." : "Prends ta photo"}</p></div> : <div className="space-y-4"><div className="relative rounded overflow-hidden bg-black"><img src={photo} className="w-full h-48 object-contain"/><button onClick={() => setPhoto(null)} className="absolute top-2 right-2 bg-white/80 p-1 rounded-full text-red-500"><Icons.Trash2/></button></div><button onClick={sendPhoto} className="w-full bg-yellow-400 font-bold py-3 rounded-xl shadow-md">Envoyer</button></div>}</div>}
+                        {activeTab === 'shop' && <ShopSection rewards={rewards} userData={userData} handleBuy={buy} isDaddyDuck={isDaddy} appId={APP_ID} db={db} notify={notify} />}
+                        {activeTab === 'pbs' && <PBSection currentUser={username} isDaddyDuck={isDaddy} appId={APP_ID} db={db} notify={notify} />}
+                        {(activeTab === 'leader' || (isDaddy && activeTab !== 'admin')) && <Leaderboard appId={APP_ID} db={db} isDaddyDuck={isDaddy} notify={notify} />}
+                    </div>
+
+                    <div className="fixed bottom-0 w-full bg-white border-t p-2 flex justify-around pb-6 z-20">
+                        {isDaddy ? <><NavButton active={activeTab==='admin'} onClick={()=>setTab('admin')} icon={<Icons.CheckCircle/>} label="Admin"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Stats"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></> : <><NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Progrès"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></>}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ErrorBoundary><Main /></ErrorBoundary>);
+    </script>
+</body>
+</html>
