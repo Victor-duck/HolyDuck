@@ -4,47 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gym Duck Tracker</title>
-    
-    <!-- Styles (Tailwind CSS) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes bounceIn {
-            0% { transform: scale(0.1); opacity: 0; }
-            60% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); }
-        }
+        @keyframes bounceIn { 0% { transform: scale(0.1); opacity: 0; } 60% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); } }
         .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         body { -webkit-tap-highlight-color: transparent; }
         #debug-error { display: none; padding: 20px; background: #fee2e2; color: #b91c1c; border: 2px solid #ef4444; margin: 20px; border-radius: 8px; font-family: monospace; }
     </style>
-
     <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            const el = document.getElementById('debug-error');
-            el.style.display = 'block';
-            el.innerHTML = `<strong>Oups ! Une erreur est survenue :</strong><br>${message}<br><small>${source}:${lineno}</small>`;
-        };
+        window.onerror = function(m,s,l,c,e){document.getElementById('debug-error').style.display='block';document.getElementById('debug-error').innerHTML=`<strong>Erreur:</strong><br>${m}<br><small>${s}:${l}</small>`;};
     </script>
-
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-        import { 
-            getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, 
-            increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, 
-            deleteDoc, orderBy 
-        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
-        window.firebaseModules = {
-            initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken,
-            getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, 
-            increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, 
-            deleteDoc, orderBy
-        };
+        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        window.firebaseModules = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy };
         window.firebaseReady = true;
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
@@ -56,7 +33,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- CONFIGURATION FIREBASE ---
+        // --- CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyDfMT_0E2_D_Pq1Lu93y3BpFPa2Mh25Z3c",
             authDomain: "duck-gym.firebaseapp.com",
@@ -68,12 +45,8 @@
         };
         const APP_ID = 'gym-duck-tracker-v1';
 
-        // --- ICONES ---
-        const Icon = ({ path, size = 24, className = "", color = "currentColor" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                <g dangerouslySetInnerHTML={{ __html: path }} />
-            </svg>
-        );
+        // --- ASSETS & CONSTANTES ---
+        const Icon = ({ path, size = 24, className = "", color = "currentColor" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{ __html: path }} />;
         const Icons = {
             Camera: (p) => <Icon {...p} path='<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>' />,
             ShoppingBag: (p) => <Icon {...p} path='<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>' />,
@@ -100,14 +73,12 @@
             Users: (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />,
             Edit2: (p) => <Icon {...p} path='<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>' />
         };
-
-        // --- CONSTANTES GLOBALES ---
+        const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
         const REWARD_ICONS = { 'gift': <Icons.Gift size={24} />, 'shirt': <Icons.Shirt size={24} />, 'coffee': <Icons.Coffee size={24} />, 'dumbbell': <Icons.Dumbbell size={24} />, 'tag': <Icons.Tag size={24} />, 'package': <Icons.Package size={24} /> };
         const REWARD_OPTIONS = [ { value: 'gift', label: 'Cadeau' }, { value: 'shirt', label: 'T-shirt/Vêtement' }, { value: 'coffee', label: 'Shaker/Boisson' }, { value: 'dumbbell', label: 'Matériel' }, { value: 'tag', label: 'Autre' } ];
         const EXERCISES_LIST = [ 'Développé Couché', 'Squat', 'Soulevé de Terre', 'Presse Militaire', 'Traction (Lest)', 'Dips (Lest)' ];
         const DUCK_VARIANTS = { 'classic': { name: 'Le Coin-mun', color: '#FACC15', item: null }, 'muscle': { name: 'Le Coin-Coin Musclé', color: '#FACC15', item: 'headband', eye: 'angry' }, 'secret': { name: 'Le Coin-fidentiel', color: '#FACC15', item: 'glasses', eye: 'normal' }, 'music': { name: 'Le Coin-positeur', color: '#FACC15', item: 'piano', eye: 'normal' }, 'napoleon': { name: 'Le Coin-quérant', color: '#FACC15', item: 'bicorne', eye: 'determined' }, 'crazy': { name: 'Coin-plètement à l\'ouest', color: '#FACC15', item: 'swirl', eye: 'spiral' }, 'wizard': { name: 'Le Coin-jurateur', color: '#A855F7', item: 'hat', eye: 'normal' }, 'devil': { name: 'Le Coin-fernal', color: '#EF4444', item: 'horns', eye: 'angry' }, 'cointreau': { name: 'Le Coin-treau', color: '#FACC15', item: 'bottle', eye: 'drunk' }, 'coince': { name: 'Le Coin-cé', color: '#FACC15', item: 'box', eye: 'worry' }, 'coinche': { name: 'Le Coin-che', color: '#FACC15', item: 'cards', eye: 'suspicious' }, 'coincidence': { name: 'Le Coin-cidence', color: '#FACC15', item: null, eye: 'surprised' }, 'bitcoin': { name: 'Le Bit-coin', color: '#FACC15', item: 'money', eye: 'dollar' }, 'recoin': { name: 'Le Re-coin', color: '#CA8A04', item: 'hole', eye: 'normal' }, 'coinfeur': { name: 'Le Coin-feur', color: '#FACC15', item: 'wig', eye: 'fabulous' }, 'coinplexe': { name: 'Le Coin-plexé', color: '#EF4444', item: 'sweat', eye: 'shy' }, 'consterne': { name: 'Le Coin-sterné', color: '#FACC15', item: 'fist', eye: 'yell' }, 'conflit': { name: 'Le Coin-flit', color: '#FACC15', item: 'knife', eye: 'angry' }, 'concentration': { name: 'Le Coin-centration', color: '#FACC15', item: 'book', eye: 'reading' }, 'consciencieux': { name: 'Le Coin-sciencieux', color: '#FACC15', item: 'ruler', eye: 'normal' }, 'confiance': { name: 'Le Coin-fiance absolue', color: '#FACC15', item: 'moto', eye: 'cool' }, 'confine': { name: 'Le Coin-finé', color: '#FACC15', item: 'house', eye: 'bored' }, 'nature': { name: 'Le Coin-necté nature', color: '#FACC15', item: 'tree', eye: 'peace' }, 'conchita': { name: 'Le Coin-chita', color: '#FACC15', item: 'dress', eye: 'lashes' }, 'conjuration': { name: 'Le Coin-jurations', color: '#A855F7', item: 'wand_smoke', eye: 'magic' }, };
 
-        // --- COMPOSANTS GLOBAUX ---
         const DuckAvatar = ({ id = 'classic', size = 40 }) => {
             const variant = DUCK_VARIANTS[id] || DUCK_VARIANTS['classic'];
             const color = variant.color;
@@ -158,8 +129,6 @@
             );
         };
 
-        const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
-
         const compressImage = (file) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -180,7 +149,7 @@
             reader.onerror = () => reject(new Error("Erreur lecture"));
         });
 
-        // --- SOUS-COMPOSANTS ---
+        // --- SUB-COMPONENTS ---
         const NavButton = ({ active, onClick, icon, label }) => <button onClick={onClick} className={`flex flex-col items-center gap-1 ${active ? 'text-yellow-500' : 'text-gray-400'}`}>{React.cloneElement(icon, { size: 24, strokeWidth: active ? 2.5 : 2 })}<span className="text-xs font-medium">{label}</span></button>;
 
         const ShopSection = ({ rewards, userData, handleBuy, isDaddyDuck, appId, db, notify }) => {
@@ -198,7 +167,7 @@
                 try {
                     await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'rewards', id));
                     notify("Supprimé.", "success");
-                } catch (e) { notify("Erreur.", "error"); }
+                } catch(e) { notify("Erreur.", "error"); }
             };
             return (
                 <div className="space-y-4">
@@ -386,11 +355,23 @@
             );
         };
 
-        // --- MAIN APP ---
-        const MainApp = () => {
-            // Firebase setup
+        const Main = () => {
             const [fbLoaded, setFb] = useState(false);
             const services = useRef({});
+            const [user, setUser] = useState(null);
+            const [username, setUsername] = useState('');
+            const [userData, setUserData] = useState(null);
+            const [activeTab, setTab] = useState('home');
+            const [notif, setNotif] = useState(null);
+            const [showAvatar, setShowAvatar] = useState(false);
+            const [rewards, setRewards] = useState([]);
+            const [validations, setValidations] = useState([]);
+            const [deliveries, setDeliveries] = useState([]);
+            const [purchases, setPurchases] = useState([]);
+            const [photo, setPhoto] = useState(null);
+            const [isCompressing, setComp] = useState(false);
+            
+            const isDaddy = username.toLowerCase() === 'daddy duck';
 
             useEffect(() => {
                 const start = async () => {
@@ -400,7 +381,6 @@
                         if (!mods.getApps().length) mods.initializeApp(firebaseConfig);
                         services.current = { auth: mods.getAuth(), db: mods.getFirestore(), mods };
                         setFb(true);
-                        // Auth
                         mods.onAuthStateChanged(services.current.auth, (u) => setUser(u));
                         await mods.signInAnonymously(services.current.auth);
                     } catch(e) { console.error(e); }
@@ -408,287 +388,116 @@
                 start();
             }, []);
 
-            // App State
-            const [user, setUser] = useState(null);
-            const [username, setUsername] = useState('');
-            const [userData, setUserData] = useState(null);
-            const [activeTab, setTab] = useState('home');
-            const [notif, setNotif] = useState(null);
-            const [showAvatar, setShowAvatar] = useState(false);
-            
-            // Data
-            const [rewards, setRewards] = useState([]);
-            const [validations, setValidations] = useState([]);
-            const [deliveries, setDeliveries] = useState([]);
-            const [purchases, setPurchases] = useState([]);
-            const [photo, setPhoto] = useState(null);
-            const [isCompressing, setComp] = useState(false);
-            
-            const isDaddy = username.toLowerCase() === 'daddy duck';
+            const notify = (msg, type = 'info') => { setNotif({ msg, type }); setTimeout(() => setNotif(null), 4000); };
             const db = services.current.db;
             const mods = services.current.mods;
 
-            // Notif Helper
-            const notify = (msg, type = 'info') => {
-                setNotif({ msg, type });
-                setTimeout(() => setNotif(null), 4000);
-            };
-
-            // Listeners
             useEffect(() => {
                 if (!user || !username || !fbLoaded) return;
                 const userRef = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase());
-                
-                // User Data
                 const unsubUser = mods.onSnapshot(userRef, (s) => {
                     if (s.exists()) {
                         const d = s.data();
                         setUserData(d);
                         if (!d.avatarId && !isDaddy) setShowAvatar(true);
-                        // Streak logic simple check
-                        // (Simplified for this view, assumes logic is handled on write or server mainly, but here we read)
+                        // Check streak logic (simplified)
+                        if (d.lastWorkout) {
+                             const lastDate = new Date(d.lastWorkout.seconds * 1000);
+                             const diffDays = Math.ceil(Math.abs(new Date() - lastDate) / (1000 * 60 * 60 * 24));
+                             if (diffDays > 14 && d.points > 0) { notify("Semaine ratée = 0 pts !", "error"); mods.updateDoc(userRef, { points: 0 }); }
+                        }
                     } else {
                         mods.setDoc(userRef, { name: username, points: 0, totalWorkouts: 0, weeklyWorkouts: 0, joinedAt: mods.serverTimestamp(), avatarId: 'classic' });
                         setShowAvatar(true);
                     }
                 });
-
-                // Purchases
                 const qP = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), mods.where('userLowName', '==', username.toLowerCase()), mods.where('status', '==', 'pending'));
                 const unsubP = mods.onSnapshot(qP, (s) => setPurchases(s.docs.map(d => ({id:d.id, ...d.data()}))));
-
                 return () => { unsubUser(); unsubP(); };
             }, [user, username, fbLoaded]);
 
-            // Global Data Listeners
             useEffect(() => {
                 if (!fbLoaded) return;
-                // Rewards
-                const unsubR = mods.onSnapshot(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'rewards'), (s) => {
-                    if(s.empty) { /* Init default if empty */ }
-                    setRewards(s.docs.map(d => ({id:d.id, ...d.data()})));
-                });
-
+                const unsubR = mods.onSnapshot(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'rewards'), (s) => { if(s.empty) { /* Init default */ } setRewards(s.docs.map(d => ({id:d.id, ...d.data()}))); });
                 let unsubV = () => {}, unsubD = () => {};
                 if (isDaddy) {
-                    // Validations
                     const qV = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), mods.where('status', '==', 'pending'));
                     unsubV = mods.onSnapshot(qV, (s) => setValidations(s.docs.map(d => ({id:d.id, ...d.data()}))));
-                    // Deliveries
                     const qD = mods.query(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), mods.where('status', '==', 'pending'));
                     unsubD = mods.onSnapshot(qD, (s) => setDeliveries(s.docs.map(d => ({id:d.id, ...d.data()}))));
                 }
-
                 return () => { unsubR(); unsubV(); unsubD(); };
             }, [fbLoaded, isDaddy]);
 
-            // Handlers
             const handleLogin = (e) => {
                 e.preventDefault();
                 let n = e.target.name.value.trim().replace(/[/#\.\[\]\*\`]/g, '');
-                if (n) {
-                    if (n.toLowerCase() === 'daddy duck') setTab('admin');
-                    setUsername(n);
-                }
+                if (n) { if (n.toLowerCase() === 'daddy duck') setTab('admin'); setUsername(n); }
             };
-
-            const handleFile = async (e) => {
-                if (e.target.files[0]) {
-                    setComp(true);
-                    try {
-                        const b64 = await compressImage(e.target.files[0]);
-                        setPhoto(b64);
-                    } catch(err) { notify("Erreur image", "error"); }
-                    setComp(false);
-                }
-            };
-
+            const handleFile = async (e) => { if (e.target.files[0]) { setComp(true); try { const b64 = await compressImage(e.target.files[0]); setPhoto(b64); } catch(err) { notify("Erreur image", "error"); } setComp(false); } };
             const sendPhoto = async () => {
                 if (!userData || !photo) return;
                 if (userData.weeklyWorkouts >= 3) return notify("Max hebdo atteint !", "warning");
-                try {
-                    await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), {
-                        userName: username, userLowName: username.toLowerCase(), photoBase64: photo, status: 'pending', timestamp: mods.serverTimestamp(), userAvatar: userData.avatarId
-                    });
-                    setPhoto(null);
-                    notify("Envoyé !", "success");
-                } catch(e) { notify("Erreur envoi", "error"); }
+                try { await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'validations'), { userName: username, userLowName: username.toLowerCase(), photoBase64: photo, status: 'pending', timestamp: mods.serverTimestamp(), userAvatar: userData.avatarId }); setPhoto(null); notify("Envoyé !", "success"); } catch(e) { notify("Erreur envoi", "error"); }
             };
-
             const buy = async (item) => {
                 if (userData.points < item.cost) return notify("Pas assez de canards", "error");
-                try {
-                    const ref = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase());
-                    await mods.updateDoc(ref, { points: mods.increment(-item.cost) });
-                    await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), {
-                        userName: username, userLowName: username.toLowerCase(), itemName: item.name, itemCost: item.cost, status: 'pending', timestamp: mods.serverTimestamp()
-                    });
-                    notify("Acheté !", "success");
-                } catch(e) { notify("Erreur", "error"); }
+                try { const ref = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase()); await mods.updateDoc(ref, { points: mods.increment(-item.cost) }); await mods.addDoc(mods.collection(db, 'artifacts', APP_ID, 'public', 'data', 'purchases'), { userName: username, userLowName: username.toLowerCase(), itemName: item.name, itemCost: item.cost, status: 'pending', timestamp: mods.serverTimestamp() }); notify("Acheté !", "success"); } catch(e) { notify("Erreur", "error"); }
             };
-
             const validate = async (val, status) => {
                 try {
                     await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'validations', val.id), { status });
-                    if (status === 'approved') {
-                        const uRef = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', val.userLowName);
-                        await mods.updateDoc(uRef, { points: mods.increment(1), weeklyWorkouts: mods.increment(1), totalWorkouts: mods.increment(1), lastWorkout: mods.serverTimestamp() });
-                        notify("Validé !", "success");
-                    } else notify("Refusé.", "info");
+                    if (status === 'approved') { const uRef = mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', val.userLowName); await mods.updateDoc(uRef, { points: mods.increment(1), weeklyWorkouts: mods.increment(1), totalWorkouts: mods.increment(1), lastWorkout: mods.serverTimestamp() }); notify("Validé !", "success"); } else notify("Refusé.", "info");
                 } catch(e) { notify("Erreur", "error"); }
             };
-
-            const deliver = async (p) => {
-                try {
-                    await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'purchases', p.id), { status: 'delivered' });
-                    notify("Livré !", "success");
-                } catch(e) { notify("Erreur", "error"); }
-            };
-
-            const changeAvatar = async (k) => {
-                try {
-                    await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase()), { avatarId: k });
-                    setShowAvatar(false);
-                    notify("Avatar changé !", "success");
-                } catch(e) { notify("Erreur", "error"); }
-            };
+            const deliver = async (p) => { try { await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'purchases', p.id), { status: 'delivered' }); notify("Livré !", "success"); } catch(e) { notify("Erreur", "error"); } };
+            const changeAvatar = async (k) => { try { await mods.updateDoc(mods.doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', username.toLowerCase()), { avatarId: k }); setShowAvatar(false); notify("Avatar changé !", "success"); } catch(e) { notify("Erreur", "error"); } };
 
             if (!fbLoaded) return <div className="min-h-screen bg-yellow-50 flex items-center justify-center">Chargement...</div>;
 
-            // --- RENDER LOGIN ---
             if (!username) {
                 return (
                     <div className="min-h-screen bg-yellow-400 flex flex-col items-center justify-center p-4">
                         <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
                             <div className="flex justify-center mb-4"><DuckIcon size={64}/></div>
                             <h1 className="text-3xl font-bold text-gray-800 mb-6">Duck Training</h1>
-                            <form onSubmit={handleLogin} className="space-y-4">
-                                <input name="name" className="w-full p-4 border-2 border-yellow-200 rounded-xl" placeholder="Ton Prénom" required />
-                                <button className="w-full bg-black text-white py-4 rounded-xl font-bold">Entrer</button>
-                            </form>
+                            <div className="bg-yellow-50 p-4 rounded-xl text-left text-sm text-yellow-900 mb-6 space-y-2 border border-yellow-200"><h3 className="font-bold text-center mb-2">🦆 Les Règles</h3><ul className="list-disc list-inside"><li>Photo = <strong>+1 Canard</strong>.</li><li>Max <strong>3</strong> / semaine.</li><li className="text-red-600 font-bold">Semaine ratée = 0 pts !</li></ul></div>
+                            <form onSubmit={handleLogin} className="space-y-4"><input name="name" className="w-full p-4 border-2 border-yellow-200 rounded-xl" placeholder="Ton Prénom" required /><button className="w-full bg-black text-white py-4 rounded-xl font-bold">Entrer</button></form>
                         </div>
                     </div>
                 );
             }
 
-            // --- RENDER APP ---
             return (
-                <div className="min-h-screen bg-gray-50 pb-24 font-sans relative">
-                    {notif && <div className={`fixed top-4 left-4 right-4 z-50 p-4 rounded-xl shadow-lg text-white font-bold flex items-center gap-3 animate-bounce-in ${notif.type==='error'?'bg-red-500':notif.type==='success'?'bg-green-600':'bg-blue-600'}`}>{notif.msg}</div>}
+                <div className="min-h-screen bg-gray-50 pb-24 relative font-sans">
+                    {notif && <div className={`fixed top-4 left-4 right-4 z-50 p-4 rounded-xl shadow-lg text-white font-bold flex items-center gap-3 animate-bounce-in ${notif.type==='error'?'bg-red-500':notif.type==='success'?'bg-green-600':'bg-blue-600'}`}>{notif.type==='error'?<Icons.AlertTriangle/>:<Icons.Info/>} {notif.msg}</div>}
+                    {showAvatar && !isDaddy && <div className="fixed inset-0 bg-yellow-400 z-50 flex flex-col items-center justify-center p-4 overflow-y-auto"><div className="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-lg text-center my-auto"><h2 className="text-2xl font-black text-gray-800 mb-4">Choisis ton canard</h2><div className="grid grid-cols-3 gap-4">{Object.entries(DUCK_VARIANTS).map(([k, v]) => <button key={k} onClick={() => changeAvatar(k)} className="flex flex-col items-center p-2 border rounded hover:bg-yellow-50"><DuckAvatar id={k} size={50}/><span className="text-xs font-bold mt-1">{v.name}</span></button>)}</div></div></div>}
                     
-                    {/* Avatar Modal */}
-                    {showAvatar && !isDaddy && (
-                        <div className="fixed inset-0 bg-yellow-400 z-50 flex flex-col items-center justify-center p-4 overflow-y-auto">
-                            <div className="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-lg text-center my-auto">
-                                <h2 className="text-2xl font-black text-gray-800 mb-4">Choisis ton canard</h2>
-                                <div className="grid grid-cols-3 gap-4">
-                                    {Object.entries(DUCK_VARIANTS).map(([k, v]) => (
-                                        <button key={k} onClick={() => changeAvatar(k)} className="flex flex-col items-center p-2 border rounded hover:bg-yellow-50">
-                                            <DuckAvatar id={k} size={50}/><span className="text-xs font-bold mt-1">{v.name}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Header */}
                     <div className="bg-yellow-400 p-6 rounded-b-3xl shadow-lg sticky top-0 z-10">
                         <div className="flex justify-between items-center mb-4">
-                            <div className="flex items-center gap-3">
-                                <div onClick={() => !isDaddy && setShowAvatar(true)}><DuckAvatar id={userData?.avatarId} size={40}/></div>
-                                <span className="font-bold text-lg flex items-center gap-2">{username} {!isDaddy && <Icons.Edit2 size={14}/>}</span>
-                            </div>
+                            <div className="flex items-center gap-3"><div className="bg-white p-1 rounded-full shadow-sm cursor-pointer" onClick={() => !isDaddy && setShowAvatar(true)}><DuckAvatar id={userData?.avatarId} size={40}/></div><span className="font-bold text-lg flex items-center gap-2">{username} {!isDaddy && <Icons.Edit2 size={14}/>}</span></div>
                             <button onClick={() => setUsername('')}><Icons.LogOut size={20}/></button>
                         </div>
-                        {!isDaddy && userData && (
-                            <div>
-                                <div className="flex justify-between items-end text-white">
-                                    <div><p className="text-yellow-900 font-medium opacity-80">Mes Points</p><div className="flex items-center gap-2 text-4xl font-black text-black"><DuckIcon size={32}/> {userData.points}</div></div>
-                                    <div className="text-right text-yellow-900"><p className="text-sm font-bold">{userData.weeklyWorkouts}/3 cette semaine</p></div>
-                                </div>
-                                {purchases.length > 0 && <div className="mt-4 bg-yellow-500/20 p-2 rounded text-xs font-bold text-yellow-900 flex gap-2 overflow-x-auto">{purchases.map(p => <span key={p.id} className="bg-white px-2 py-1 rounded shadow-sm shrink-0">{p.itemName}</span>)}</div>}
-                            </div>
-                        )}
+                        {!isDaddy && userData && <div><div className="flex justify-between items-end text-white"><div><p className="text-yellow-900 font-medium opacity-80">Mes Points</p><div className="flex items-center gap-2 text-4xl font-black text-black"><DuckIcon size={32}/> {userData.points}</div></div><div className="text-right text-yellow-900"><p className="text-sm font-bold">{userData.weeklyWorkouts}/3 sem.</p></div></div>{purchases.length > 0 && <div className="mt-4 bg-yellow-500/20 p-2 rounded text-xs font-bold text-yellow-900 flex gap-2 overflow-x-auto">{purchases.map(p => <span key={p.id} className="bg-white px-2 py-1 rounded shadow-sm shrink-0">{p.itemName}</span>)}</div>}</div>}
                     </div>
 
                     <div className="p-4 max-w-md mx-auto space-y-6 mt-4">
-                        {/* Admin View */}
-                        {isDaddy && activeTab === 'admin' && (
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="font-bold text-lg text-gray-700 mb-2">Livraisons ({deliveries.length})</h3>
-                                    {deliveries.map(p => (
-                                        <div key={p.id} className="bg-blue-50 p-3 rounded-xl border border-blue-100 flex justify-between items-center mb-2">
-                                            <div><p className="font-bold">{p.userName}</p><p className="text-sm">{p.itemName}</p></div>
-                                            <button onClick={() => deliver(p)} className="bg-blue-600 text-white px-3 py-1 rounded shadow">Livré</button>
-                                        </div>
-                                    ))}
-                                </div>
-                                <hr/>
-                                <div>
-                                    <h3 className="font-bold text-lg text-gray-700 mb-2">Validations ({validations.length})</h3>
-                                    {validations.map(v => (
-                                        <div key={v.id} className="bg-white p-3 rounded-xl shadow-sm border mb-4">
-                                            <div className="flex justify-between mb-2"><span className="font-bold">{v.userName}</span><span className="text-xs text-gray-400">{v.timestamp?.toDate().toLocaleTimeString()}</span></div>
-                                            <img src={v.photoBase64} className="rounded mb-2 max-h-48 object-contain bg-black w-full"/>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => validate(v, 'rejected')} className="flex-1 border border-red-200 text-red-600 py-2 rounded font-bold">Refuser</button>
-                                                <button onClick={() => validate(v, 'approved')} className="flex-1 bg-yellow-400 py-2 rounded font-bold">Valider</button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* User Home */}
-                        {!isDaddy && activeTab === 'home' && (
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
-                                <h2 className="text-xl font-bold mb-4">Gagner un canard</h2>
-                                {!photoPreview ? (
-                                    <div className={`border-2 border-dashed rounded-xl p-8 relative ${isCompressing ? 'bg-gray-50' : 'cursor-pointer'}`}>
-                                        <input type="file" accept="image/*" className="absolute inset-0 opacity-0 w-full h-full" onChange={handleFile} disabled={isCompressing} />
-                                        {isCompressing ? <Icons.Loader className="animate-spin mx-auto"/> : <Icons.Camera className="mx-auto text-gray-400" size={32}/>}
-                                        <p className="mt-2 text-sm font-bold text-gray-500">{isCompressing ? "Compression..." : "Prends ta photo"}</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div className="relative rounded overflow-hidden bg-black"><img src={photoPreview} className="w-full h-48 object-contain"/><button onClick={() => setPhotoPreview(null)} className="absolute top-2 right-2 bg-white/80 p-1 rounded-full text-red-500"><Icons.Trash2/></button></div>
-                                        <button onClick={sendPhoto} className="w-full bg-yellow-400 font-bold py-3 rounded-xl shadow-md">Envoyer</button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {activeTab === 'shop' && <ShopSection rewards={rewards} userData={userData} handleBuy={buy} isDaddyDuck={isDaddy} appId={APP_ID} db={db} showNotif={notify} />}
-                        {activeTab === 'pbs' && <PBSection currentUser={username} isDaddyDuck={isDaddy} appId={APP_ID} db={db} showNotif={notify} />}
-                        {(activeTab === 'leader' || (isDaddy && activeTab !== 'admin')) && <Leaderboard appId={APP_ID} db={db} isDaddyDuck={isDaddy} showNotif={notify} />}
+                        {isDaddy && activeTab === 'admin' && <div className="space-y-6"><div><h3 className="font-bold text-lg text-gray-700 mb-2">Livraisons ({deliveries.length})</h3>{deliveries.map(p => <div key={p.id} className="bg-blue-50 p-3 rounded-xl border border-blue-100 flex justify-between items-center mb-2"><div><p className="font-bold">{p.userName}</p><p className="text-sm">{p.itemName}</p></div><button onClick={() => deliver(p)} className="bg-blue-600 text-white px-3 py-1 rounded shadow">Livré</button></div>)}</div><hr/><div><h3 className="font-bold text-lg text-gray-700 mb-2">Validations ({validations.length})</h3>{validations.map(v => <div key={v.id} className="bg-white p-3 rounded-xl shadow-sm border mb-4"><div className="flex justify-between mb-2"><span className="font-bold">{v.userName}</span><span className="text-xs text-gray-400">{v.timestamp?.toDate().toLocaleTimeString()}</span></div><img src={v.photoBase64} className="rounded mb-2 max-h-48 object-contain bg-black w-full"/><div className="flex gap-2"><button onClick={() => validate(v, 'rejected')} className="flex-1 border border-red-200 text-red-600 py-2 rounded font-bold">Refuser</button><button onClick={() => validate(v, 'approved')} className="flex-1 bg-yellow-400 py-2 rounded font-bold">Valider</button></div></div>)}</div></div>}
+                        {!isDaddy && activeTab === 'home' && <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center"><h2 className="text-xl font-bold mb-4">Gagner un canard</h2>{!photoPreview ? <div className={`border-2 border-dashed rounded-xl p-8 relative ${isCompressing ? 'bg-gray-50' : 'cursor-pointer'}`}><input type="file" accept="image/*" className="absolute inset-0 opacity-0 w-full h-full" onChange={handleFile} disabled={isCompressing} />{isCompressing ? <Icons.Loader className="animate-spin mx-auto"/> : <Icons.Camera className="mx-auto text-gray-400" size={32}/>}<p className="mt-2 text-sm font-bold text-gray-500">{isCompressing ? "Compression..." : "Prends ta photo"}</p></div> : <div className="space-y-4"><div className="relative rounded overflow-hidden bg-black"><img src={photoPreview} className="w-full h-48 object-contain"/><button onClick={() => setPhotoPreview(null)} className="absolute top-2 right-2 bg-white/80 p-1 rounded-full text-red-500"><Icons.Trash2/></button></div><button onClick={sendPhoto} className="w-full bg-yellow-400 font-bold py-3 rounded-xl shadow-md">Envoyer</button></div>}</div>}
+                        {activeTab === 'shop' && <ShopSection rewards={rewards} userData={userData} handleBuy={buy} isDaddyDuck={isDaddy} appId={APP_ID} db={db} notify={notify} />}
+                        {activeTab === 'pbs' && <PBSection currentUser={username} isDaddyDuck={isDaddy} appId={APP_ID} db={db} notify={notify} />}
+                        {(activeTab === 'leader' || (isDaddy && activeTab !== 'admin')) && <Leaderboard appId={APP_ID} db={db} isDaddyDuck={isDaddy} notify={notify} />}
                     </div>
 
                     <div className="fixed bottom-0 w-full bg-white border-t p-2 flex justify-around pb-6 z-20">
-                        {isDaddy ? (
-                            <>
-                                <NavButton active={activeTab==='admin'} onClick={()=>setTab('admin')} icon={<Icons.CheckCircle/>} label="Admin"/>
-                                <NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Stats"/>
-                                <NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/>
-                                <NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/>
-                            </>
-                        ) : (
-                            <>
-                                <NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/>
-                                <NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Progrès"/>
-                                <NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/>
-                                <NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/>
-                            </>
-                        )}
+                        {isDaddy ? <><NavButton active={activeTab==='admin'} onClick={()=>setTab('admin')} icon={<Icons.CheckCircle/>} label="Admin"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Stats"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></> : <><NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Progrès"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></>}
                     </div>
                 </div>
             );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<MainApp />);
+        root.render(<Main />);
     </script>
 </body>
 </html>
