@@ -9,8 +9,9 @@
         @keyframes bounceIn { 0% { transform: scale(0.1); opacity: 0; } 60% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); } }
         .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         body { -webkit-tap-highlight-color: transparent; }
-        #debug-error { display: none; padding: 20px; background: #fee2e2; color: #b91c1c; border: 2px solid #ef4444; margin: 20px; border-radius: 8px; font-family: monospace; z-index: 9999; position: relative; }
-        #loading-fallback { position: fixed; inset:0; display: flex; align-items: center; justify-content: center; background: #FEF3C7; color: #D97706; font-weight: bold; font-size: 1.2rem; z-index: 50; }
+        /* Ecran de chargement HTML (visible tant que React n'a pas pris la main) */
+        #loading-fallback { position: fixed; inset:0; display: flex; align-items: center; justify-content: center; background: #FACC15; color: #000; font-weight: bold; font-size: 1.5rem; z-index: 9999; flex-direction: column; gap: 10px; }
+        #debug-error { display: none; padding: 20px; background: #fee2e2; color: #b91c1c; border: 2px solid #ef4444; margin: 20px; border-radius: 8px; font-family: monospace; z-index: 10000; position: relative; }
     </style>
     
     <!-- React -->
@@ -34,12 +35,18 @@
     </script>
 </head>
 <body class="bg-gray-50 text-gray-800">
+    
+    <!-- Fallback HTML -->
+    <div id="loading-fallback">
+        <span>🦆 Chargement...</span>
+        <span style="font-size: 0.8rem; font-weight: normal;">Connexion à la salle</span>
+    </div>
+    
     <div id="debug-error"></div>
-    <div id="loading-fallback">Chargement de la salle...</div>
     <div id="root"></div>
 
     <script type="text/babel">
-        // Masquer le fallback une fois React démarré
+        // Fonction pour cacher l'écran de chargement HTML
         const hideFallback = () => { const el = document.getElementById('loading-fallback'); if(el) el.style.display = 'none'; };
 
         const { useState, useEffect, useRef } = React;
@@ -369,7 +376,7 @@
             );
         };
 
-        const Main = () => {
+        const App = () => {
             const [fbLoaded, setFb] = useState(false);
             const [error, setError] = useState(null);
             const services = useRef({});
@@ -397,7 +404,15 @@
 
             useEffect(() => {
                 const start = async () => {
-                    const timer = setTimeout(() => setError("Connexion au serveur trop longue. Vérifiez votre internet."), 8000);
+                    const timer = setTimeout(() => {
+                        const el = document.getElementById('loading-fallback');
+                        if (el) {
+                            el.innerHTML = "<span>⚠️ Erreur de connexion</span><span style='font-size:0.8rem'>Vérifiez votre internet ou rechargez</span>";
+                            el.style.backgroundColor = "#FECACA"; // Rouge clair
+                            el.style.color = "#B91C1C";
+                        }
+                    }, 8000);
+                    
                     await waitForFirebase();
                     clearTimeout(timer);
                     hideFallback();
