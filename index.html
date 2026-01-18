@@ -479,6 +479,11 @@
                         const d = s.data();
                         setUserData(d);
                         if (!d.avatarId && !isDaddy) setShowAvatar(true);
+                        if (d.lastWorkout) {
+                             const lastDate = new Date(d.lastWorkout.seconds * 1000);
+                             const diffDays = Math.ceil(Math.abs(new Date() - lastDate) / (1000 * 60 * 60 * 24));
+                             if (diffDays > 14 && d.points > 0) { notify("Semaine ratée = 0 pts !", "error"); mods.updateDoc(userRef, { points: 0 }); }
+                        }
                     } else {
                         mods.setDoc(userRef, { name: username, points: 0, totalWorkouts: 0, weeklyWorkouts: 0, joinedAt: mods.serverTimestamp(), avatarId: 'classic' });
                         setShowAvatar(true);
@@ -546,6 +551,7 @@
                 );
             }
 
+            // Safety check for auth before rendering authenticated views
             if (!user) return <div className="min-h-screen bg-yellow-50 flex items-center justify-center font-bold text-yellow-600 animate-pulse">Reconnexion...</div>;
 
             return (
@@ -572,9 +578,9 @@
                     <div className="p-4 max-w-md mx-auto space-y-6 mt-4">
                         {isDaddy && activeTab === 'admin' && <div className="space-y-6"><div><h3 className="font-bold text-lg text-gray-700 mb-2">Livraisons ({deliveries.length})</h3>{deliveries.map(p => <div key={p.id} className="bg-blue-50 p-3 rounded-xl border border-blue-100 flex justify-between items-center mb-2"><div><p className="font-bold">{p.userName}</p><p className="text-sm">{p.itemName}</p></div><button onClick={() => deliver(p)} className="bg-blue-600 text-white px-3 py-1 rounded shadow">Livré</button></div>)}</div><hr/><div><h3 className="font-bold text-lg text-gray-700 mb-2">Validations ({validations.length})</h3>{validations.map(v => <div key={v.id} className="bg-white p-3 rounded-xl shadow-sm border mb-4"><div className="flex justify-between mb-2"><span className="font-bold">{v.userName}</span><span className="text-xs text-gray-400">{v.timestamp?.toDate().toLocaleTimeString()}</span></div><img src={v.photoBase64} className="rounded mb-2 max-h-48 object-contain bg-black w-full"/><div className="flex gap-2"><button onClick={() => handleRejectWorkout(v)} disabled={!!processingId} className="flex-1 border border-red-200 text-red-600 py-2 rounded font-bold">Refuser</button><button onClick={() => handleValidateWorkout(v)} disabled={!!processingId} className="flex-1 bg-yellow-400 py-2 rounded font-bold">Valider</button></div></div>)}</div></div>}
                         {!isDaddy && activeTab === 'home' && <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center"><h2 className="text-xl font-bold mb-4">Gagner un canard</h2>{!photo ? <div className={`border-2 border-dashed rounded-xl p-8 relative ${isCompressing ? 'bg-gray-50' : 'cursor-pointer'}`}><input type="file" accept="image/*" className="absolute inset-0 opacity-0 w-full h-full" onChange={handleFile} disabled={isCompressing} />{isCompressing ? <Icons.Loader className="animate-spin mx-auto"/> : <Icons.Camera className="mx-auto text-gray-400" size={32}/>}<p className="mt-2 text-sm font-bold text-gray-500">{isCompressing ? "Compression..." : "Prends ta photo"}</p></div> : <div className="space-y-4"><div className="relative rounded overflow-hidden bg-black"><img src={photo} className="w-full h-48 object-contain"/><button onClick={() => setPhoto(null)} className="absolute top-2 right-2 bg-white/80 p-1 rounded-full text-red-500"><Icons.Trash2/></button></div><button onClick={sendPhoto} className="w-full bg-yellow-400 font-bold py-3 rounded-xl shadow-md">Envoyer</button></div>}</div>}
-                        {activeTab === 'shop' && <ShopSection rewards={rewards} userData={userData} handleBuy={buy} isDaddyDuck={isDaddy} appId={APP_ID} db={db} notify={notify} />}
-                        {activeTab === 'pbs' && <PBSection currentUser={username} isDaddyDuck={isDaddy} appId={APP_ID} db={db} notify={notify} />}
-                        {(activeTab === 'leader' || (isDaddy && activeTab !== 'admin')) && <Leaderboard appId={APP_ID} db={db} isDaddyDuck={isDaddy} notify={notify} />}
+                        {activeTab === 'shop' && <ShopSection rewards={rewards} userData={userData} handleBuy={buy} isDaddyDuck={isDaddy} db={db} notify={notify} />}
+                        {activeTab === 'pbs' && <PBSection currentUser={username} isDaddyDuck={isDaddy} db={db} notify={notify} />}
+                        {(activeTab === 'leader' || (isDaddy && activeTab !== 'admin')) && <Leaderboard db={db} isDaddyDuck={isDaddy} notify={notify} />}
                     </div>
 
                     <div className="fixed bottom-0 w-full bg-white border-t p-2 flex justify-around pb-6 z-20">
