@@ -18,10 +18,10 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
         import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-        window.firebaseModules = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy };
+        window.firebaseModules = { initializeApp, getApps, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy };
         window.firebaseReady = true;
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
