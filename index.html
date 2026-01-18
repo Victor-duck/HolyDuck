@@ -113,9 +113,7 @@
         const Main = () => {
             const { useState, useEffect, useRef, useMemo } = React;
             
-            // ===============================================================
-            // CONFIGURATION FIREBASE DU CLIENT
-            // ===============================================================
+            // --- CONFIGURATION FIREBASE ---
             const firebaseConfig = {
                 apiKey: "AIzaSyDfMT_0E2_D_Pq1Lu93y3BpFPa2Mh25Z3c",
                 authDomain: "duck-gym.firebaseapp.com",
@@ -125,7 +123,6 @@
                 appId: "1:925726427622:web:e730e1cc87a91ecc102e27",
                 measurementId: "G-H3BMWZ9VGL"
             };
-            // ===============================================================
 
             // États globaux pour Firebase
             const [fb, setFb] = useState(null);
@@ -137,19 +134,14 @@
                     const mods = window.firebaseModules;
                     try {
                         let app;
-                        // On tente d'initialiser ou de récupérer l'app existante
                         try { 
-                            // Si pas encore d'apps initialisées
                             if (!mods.getApps?.().length) {
                                 app = mods.initializeApp(firebaseConfig); 
                             } else {
-                                // Sinon on prend la première (par défaut)
                                 app = mods.getApps()[0];
                             }
                         } 
-                        catch(e) { 
-                            console.warn("Firebase déjà initialisé", e);
-                        }
+                        catch(e) { console.warn("Firebase déjà initialisé", e); }
                         
                         const auth = mods.getAuth();
                         const db = mods.getFirestore();
@@ -158,7 +150,7 @@
                         setFb(true);
                     } catch (e) {
                         console.error("Erreur critique Firebase:", e);
-                        alert("Erreur de connexion à la base de données. Vérifiez la console.");
+                        alert("Erreur de connexion à la base de données.");
                     }
                 });
             }, []);
@@ -173,7 +165,6 @@
             const { useState, useEffect, useRef } = React;
             const { auth, db, mods } = services;
             const { 
-                signInAnonymously, onAuthStateChanged, 
                 collection, doc, setDoc, addDoc, onSnapshot, updateDoc, 
                 increment, serverTimestamp, query, where, getDocs, getDoc, 
                 deleteDoc 
@@ -360,6 +351,186 @@
                     reader.onerror = () => reject(new Error("Lecture fichier impossible"));
                 });
             };
+
+            // --- HANDLERS MANQUANTS (Restaurés) ---
+            
+            const checkStreakLogic = async (ref, data) => {
+                if (!data.lastWorkout) return;
+                const lastWorkoutDate = new Date(data.lastWorkout.seconds * 1000);
+                const now = new Date();
+                const diffDays = Math.ceil(Math.abs(now - lastWorkoutDate) / (1000 * 60 * 60 * 24)); 
+                const lastWeekNum = getWeekNumber(lastWorkoutDate);
+                const currentWeekNum = getWeekNumber(now);
+
+                if (currentWeekNum !== lastWeekNum && data.weeklyWorkouts > 0) {
+                    await updateDoc(ref, { weeklyWorkouts: 0 });
+                }
+                if (diffDays > 14 && data.points > 0) {
+                    showNotif("⚠️ SEMAINE RATÉE ! Tes canards se sont envolés...", "error", setNotification);
+                    await updateDoc(ref, { points: 0 });
+                }
+            };
+
+            const getWeekNumber = (d) => {
+                d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+                var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+                return Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+            };
+
+            const createDefaultRewards = async () => {
+                const defaults = [
+                    { name: "Stickers", cost: 2, iconKey: "tag" },
+                    { name: "Shaker Protéines", cost: 10, iconKey: "coffee" },
+                    { name: "Séance Privée", cost: 25, iconKey: "dumbbell" },
+                    { name: "T-shirt Team Duck", cost: 50, iconKey: "shirt" }
+                ];
+                defaults.forEach(r => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'rewards'), r));
+            };
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                let name = e.target.elements.name.value.trim();
+                name = name.replace(/[/#\.\[\]\*\`]/g, '');
+                if (name) {
+                    if (name.toLowerCase() === 'daddy duck') {
+                        setIsDaddyDuck(true);
+                        setUsername('Daddy Duck');
+                        setActiveTab('admin');
+                    } else {
+                        setUsername(name);
+                        setIsDaddyDuck(false);
+                    }
+                } else {
+                    showNotif("Nom invalide.", "error", setNotification);
+                }
+            };
+
+            const handlePhotoSelect = async (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (file) {
+                    setIsCompressing(true);
+                    try {
+                        const compressedBase64 = await compressImage(file);
+                        setPhotoPreview(compressedBase64);
+                    } catch (err) {
+                        showNotif("Erreur image: " + err.message, "error", setNotification);
+                        setPhotoPreview(null);
+                    }
+                    setIsCompressing(false);
+                    if(fileInputRef.current) fileInputRef.current.value = '';
+                }
+            };
+
+            const handleSubmitValidation = async () => {
+                if (!userData || !photoPreview) return;
+                if (userData.weeklyWorkouts >= 3) {
+                    showNotif("Déjà 3 points cette semaine ! Reviens lundi.", "warning", setNotification);
+                    return;
+                }
+                setIsSending(true);
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'validations'), {
+                        userName: username,
+                        userLowName: username.toLowerCase(),
+                        photoBase64: photoPreview,
+                        status: 'pending',
+                        timestamp: serverTimestamp(),
+                        userAvatar: userData.avatarId || 'classic'
+                    });
+                    setPhotoPreview(null);
+                    showNotif("Envoyé ! Attends que Daddy Duck valide.", "success", setNotification);
+                } catch (e) {
+                    showNotif("Erreur envoi. Vérifie ta connexion.", "error", setNotification);
+                }
+                setIsSending(false);
+            };
+
+            const handleBuy = async (item) => {
+                if (userData.points >= item.cost) {
+                    try {
+                        const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', username.toLowerCase());
+                        await updateDoc(userRef, { points: increment(-item.cost) });
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'purchases'), {
+                            userName: username,
+                            userLowName: username.toLowerCase(),
+                            itemName: item.name,
+                            itemCost: item.cost,
+                            status: 'pending',
+                            timestamp: serverTimestamp()
+                        });
+                        showNotif(`Acheté : ${item.name} ! Il apparaît sous ton pseudo.`, "success", setNotification);
+                    } catch (e) {
+                        showNotif("Erreur lors de l'achat.", "error", setNotification);
+                    }
+                } else {
+                    showNotif("Pas assez de canards !", "error", setNotification);
+                }
+            };
+
+            const handleValidateWorkout = async (valData) => {
+                if (processingId) return;
+                setProcessingId(valData.id);
+                if (!valData.userLowName) {
+                    showNotif("Erreur user data.", "error", setNotification);
+                    setProcessingId(null);
+                    return;
+                }
+                const valRef = doc(db, 'artifacts', appId, 'public', 'data', 'validations', valData.id);
+                const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', valData.userLowName);
+                try {
+                    const userSnap = await getDoc(userRef);
+                    if (!userSnap.exists()) {
+                        showNotif(`Utilisateur introuvable.`, "warning", setNotification);
+                        await updateDoc(valRef, { status: 'approved_no_user' });
+                    } else {
+                        await updateDoc(valRef, { status: 'approved' });
+                        await updateDoc(userRef, {
+                            points: increment(1),
+                            weeklyWorkouts: increment(1),
+                            totalWorkouts: increment(1),
+                            lastWorkout: serverTimestamp()
+                        });
+                        showNotif(`Validé pour ${valData.userName} !`, "success", setNotification);
+                    }
+                } catch (e) { showNotif("Erreur technique.", "error", setNotification); }
+                setProcessingId(null);
+            };
+
+            const handleRejectWorkout = async (valData) => {
+                if (processingId) return;
+                setProcessingId(valData.id);
+                const valRef = doc(db, 'artifacts', appId, 'public', 'data', 'validations', valData.id);
+                try {
+                    await updateDoc(valRef, { status: 'rejected' });
+                    showNotif(`Refusé.`, "info", setNotification);
+                } catch (e) {}
+                setProcessingId(null);
+            };
+
+            const handleDeliverItem = async (purchase) => {
+                if (processingId) return;
+                setProcessingId(purchase.id);
+                try {
+                    const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'purchases', purchase.id);
+                    await updateDoc(pRef, { status: 'delivered' });
+                    showNotif(`Livraison confirmée pour ${purchase.userName}.`, "success", setNotification);
+                } catch(e) { showNotif("Erreur validation livraison", "error", setNotification); }
+                setProcessingId(null);
+            };
+
+            const handleSelectAvatar = async (avatarKey) => {
+                if (!username) return;
+                const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', username.toLowerCase());
+                try {
+                    await updateDoc(userRef, { avatarId: avatarKey });
+                    setShowAvatarSelector(false);
+                    showNotif("Avatar mis à jour ! Stylé.", "success", setNotification);
+                } catch (e) {
+                    showNotif("Erreur lors de la sélection.", "error", setNotification);
+                }
+            };
+
 
             // --- SOUS-COMPOSANTS ---
             
