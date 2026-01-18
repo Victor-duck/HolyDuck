@@ -454,7 +454,13 @@
                         }
                     } catch(e) { 
                         console.error(e); 
-                        setError("Erreur d'initialisation : " + e.message); 
+                        let userMsg = e.message;
+                        if (e.code === 'auth/configuration-not-found' || e.message.includes('configuration-not-found')) {
+                             userMsg = "L'authentification est mal configurée. Avez-vous activé 'Anonyme' dans la console Firebase (Authentication > Sign-in method) ?";
+                        } else if (e.code === 'auth/admin-restricted-operation' || e.message.includes('admin-restricted-operation')) {
+                             userMsg = "Opération restreinte. Vérifiez que l'authentification 'Anonyme' est bien ACTIVÉE dans la console Firebase.";
+                        }
+                        setError("Erreur d'initialisation : " + userMsg); 
                     }
                 };
                 start();
