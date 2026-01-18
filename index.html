@@ -9,42 +9,67 @@
         @keyframes bounceIn { 0% { transform: scale(0.1); opacity: 0; } 60% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); } }
         .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         body { -webkit-tap-highlight-color: transparent; }
+        
+        /* Ecran de chargement HTML */
         #loading-fallback { position: fixed; inset:0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #FACC15; color: #000; font-weight: bold; font-size: 1.5rem; z-index: 9999; gap: 1rem; transition: opacity 0.5s; }
-        #debug-error { display: none; padding: 20px; background: #fee2e2; color: #b91c1c; margin: 20px; border-radius: 8px; font-family: monospace; border: 2px solid #ef4444; z-index: 10000; position: relative; }
+        
+        /* Conteneur d'erreur critique */
+        #critical-error { display: none; position: fixed; inset: 0; background: #FEF2F2; color: #991B1B; padding: 2rem; z-index: 10000; overflow: auto; }
     </style>
     
+    <!-- React -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Firebase Modules -->
     <script type="module">
         import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
         import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
         
-        window.firebaseModules = { initializeApp, getApps, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy };
+        window.firebaseModules = { 
+            initializeApp, getApps, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, 
+            getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, 
+            serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy 
+        };
         window.firebaseReady = true;
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 </head>
 <body class="bg-gray-50 text-gray-800">
-    <div id="loading-fallback"><span>🦆 Chargement...</span><span style="font-size: 0.8rem; font-weight: normal;">Connexion à la salle</span></div>
-    <div id="debug-error"></div>
+    
+    <!-- Fallback HTML -->
+    <div id="loading-fallback">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-bounce"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
+        <span>Chargement...</span>
+    </div>
+    
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- UTILITAIRES ---
-        const hideFallback = () => { const el = document.getElementById('loading-fallback'); if(el) { el.style.opacity = '0'; setTimeout(() => el.style.display = 'none', 500); }};
-        const showError = (msg) => { const el = document.getElementById('debug-error'); if(el) { el.style.display = 'block'; el.innerHTML = `<strong>Erreur:</strong><br/>${msg}`; hideFallback(); }};
+        // --- UTILITAIRES D'INTERFACE ---
+        const hideFallback = () => { 
+            const el = document.getElementById('loading-fallback'); 
+            if(el) { el.style.opacity = '0'; setTimeout(() => el.style.display = 'none', 500); }
+        };
 
-        // --- ERROR BOUNDARY ---
+        // --- GESTION ERREURS ---
         class ErrorBoundary extends React.Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
             render() {
                 if (this.state.hasError) {
                     hideFallback();
-                    return (<div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-red-50"><h1 className="text-2xl font-bold text-red-600 mb-4">Oups ! Une erreur est survenue.</h1><div className="bg-white p-4 rounded-xl border border-red-200 text-left font-mono text-xs text-red-800 overflow-auto max-w-full max-h-64">{this.state.error && this.state.error.toString()}</div><button onClick={() => window.location.reload()} className="mt-6 px-6 py-3 bg-red-600 text-white rounded-xl font-bold">Réessayer</button></div>);
+                    return (
+                        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-red-50">
+                            <h1 className="text-2xl font-bold text-red-600 mb-4">Oups ! Une erreur est survenue.</h1>
+                            <div className="bg-white p-4 rounded-xl border border-red-200 text-left font-mono text-xs text-red-800 overflow-auto max-w-full max-h-64">
+                                {this.state.error && this.state.error.toString()}
+                            </div>
+                            <button onClick={() => window.location.reload()} className="mt-6 px-6 py-3 bg-red-600 text-white rounded-xl font-bold">Réessayer</button>
+                        </div>
+                    );
                 }
                 return this.props.children;
             }
@@ -92,7 +117,6 @@
             Users: (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />,
             Edit2: (p) => <Icon {...p} path='<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>' />
         };
-        const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
         const REWARD_ICONS = { 'gift': <Icons.Gift size={24} />, 'shirt': <Icons.Shirt size={24} />, 'coffee': <Icons.Coffee size={24} />, 'dumbbell': <Icons.Dumbbell size={24} />, 'tag': <Icons.Tag size={24} />, 'package': <Icons.Package size={24} /> };
         const REWARD_OPTIONS = [ { value: 'gift', label: 'Cadeau' }, { value: 'shirt', label: 'T-shirt/Vêtement' }, { value: 'coffee', label: 'Shaker/Boisson' }, { value: 'dumbbell', label: 'Matériel' }, { value: 'tag', label: 'Autre' } ];
         const EXERCISES_LIST = [ 'Développé Couché', 'Squat', 'Soulevé de Terre', 'Presse Militaire', 'Traction (Lest)', 'Dips (Lest)' ];
@@ -150,6 +174,8 @@
             );
         };
 
+        const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
+
         const compressImage = (file) => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -170,6 +196,7 @@
             reader.onerror = () => reject(new Error("Erreur lecture"));
         });
 
+        // --- SUB-COMPONENTS ---
         const NavButton = ({ active, onClick, icon, label }) => <button onClick={onClick} className={`flex flex-col items-center gap-1 ${active ? 'text-yellow-500' : 'text-gray-400'}`}>{React.cloneElement(icon, { size: 24, strokeWidth: active ? 2.5 : 2 })}<span className="text-xs font-medium">{label}</span></button>;
 
         const ShopSection = ({ rewards, userData, handleBuy, isDaddyDuck, appId, db, notify }) => {
