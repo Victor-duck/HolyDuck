@@ -529,7 +529,7 @@
                 } catch(e) { notify("Erreur", "error"); }
             };
             const deliver = async (p) => { try { await mods.updateDoc(mods.doc(db, 'duck_purchases', p.id), { status: 'delivered' }); notify("Livré !", "success"); } catch(e) { notify("Erreur", "error"); } };
-            const changeAvatar = async (k) => { try { await mods.updateDoc(mods.doc(db, 'duck_users', username.toLowerCase()), { avatarId: k }); setShowAvatar(false); notify("Avatar changé !", "success"); } catch(e) { notify("Erreur", "error"); } };
+            const changeAvatar = async (k) => { try { await mods.updateDoc(mods.doc(db, 'duck_users', username.toLowerCase()), { avatarId: k }); setShowAvatar(false); notify("Avatar changé ! Bon choix la tcheam", "success"); } catch(e) { notify("Erreur", "error"); } };
             const handleRejectWorkout = async (val) => { try { await mods.updateDoc(mods.doc(db, 'duck_validations', val.id), { status: 'rejected' }); notify("Refusé.", "info"); } catch(e) { notify("Erreur", "error"); } };
             const handleValidateWorkout = (val) => validate(val, 'approved');
             const handleDeliverItem = deliver;
