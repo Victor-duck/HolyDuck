@@ -23,12 +23,12 @@
     <script type="module">
         import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy, limit, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
         
         window.firebaseModules = { 
             initializeApp, getApps, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, 
             getFirestore, collection, doc, setDoc, addDoc, onSnapshot, updateDoc, increment, 
-            serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy, limit
+            serverTimestamp, Timestamp, query, where, getDocs, getDoc, deleteDoc, orderBy, limit, arrayUnion
         };
         window.firebaseReady = true;
         window.dispatchEvent(new Event('firebase-ready'));
@@ -110,7 +110,11 @@
             Calendar: (p) => <Icon {...p} path='<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' />,
             Users: (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />,
             Edit2: (p) => <Icon {...p} path='<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>' />,
-            Home: (p) => <Icon {...p} path='<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/> <polyline points="9 22 9 12 15 12 15 22"/>' />
+            Home: (p) => <Icon {...p} path='<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/> <polyline points="9 22 9 12 15 12 15 22"/>' />,
+            FileText: (p) => <Icon {...p} path='<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>' />,
+            Download: (p) => <Icon {...p} path='<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>' />,
+            MessageSquare: (p) => <Icon {...p} path='<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' />,
+            Send: (p) => <Icon {...p} path='<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' />
         };
 
         const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
@@ -195,12 +199,133 @@
         const NavButton = ({ active, onClick, icon, label }) => <button onClick={onClick} className={`flex flex-col items-center gap-1 ${active ? 'text-yellow-500' : 'text-gray-400'}`}>{React.cloneElement(icon, { size: 24, strokeWidth: active ? 2.5 : 2 })}<span className="text-xs font-medium">{label}</span></button>;
 
         // --- COMPOSANTS DE L'APPLICATION ---
+        
+        // --- NOUVEAU COMPOSANT PROGRAMMES ---
+        const ProgramSection = ({ db, isDaddyDuck, notify }) => {
+            const [programs, setPrograms] = useState([]);
+            const [comment, setComment] = useState("");
+            const [file, setFile] = useState(null); // { name, base64 }
+            const [loading, setLoading] = useState(false);
 
-        const FeedSection = ({ db, isDaddyDuck, notify }) => {
+            useEffect(() => {
+                // Fetch all, sort in JS (RULE 2 compliance + no index required)
+                const q = window.firebaseModules.collection(db, 'duck_programs');
+                const unsub = window.firebaseModules.onSnapshot(q, (snap) => {
+                    const loadedPrograms = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    loadedPrograms.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                    setPrograms(loadedPrograms);
+                }, (err) => console.error("Program error:", err));
+                return () => unsub();
+            }, [db]);
+
+            const handleFileChange = async (e) => {
+                const f = e.target.files[0];
+                if (!f) return;
+                if (f.size > 800 * 1024) { // Limit 800KB for Firestore
+                    notify("Fichier trop lourd (max 800ko)", "error");
+                    return;
+                }
+                if (f.type !== 'application/pdf') {
+                    notify("Format PDF uniquement", "error");
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => setFile({ name: f.name, base64: e.target.result });
+                reader.readAsDataURL(f);
+            };
+
+            const publish = async () => {
+                if (!comment && !file) return notify("Ajoute un fichier ou un commentaire", "warning");
+                setLoading(true);
+                try {
+                    await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'duck_programs'), {
+                        comment,
+                        fileName: file ? file.name : null,
+                        fileBase64: file ? file.base64 : null,
+                        timestamp: window.firebaseModules.serverTimestamp()
+                    });
+                    setComment("");
+                    setFile(null);
+                    notify("Programme publié !", "success");
+                } catch(e) {
+                    console.error(e);
+                    notify("Erreur lors de la publication", "error");
+                }
+                setLoading(false);
+            };
+
+            const deleteProgram = async (id) => {
+                if(!confirm("Supprimer ce programme ?")) return;
+                try {
+                    await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'duck_programs', id));
+                    notify("Supprimé", "success");
+                } catch(e) { notify("Erreur", "error"); }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold px-2">Programmes & Actus</h2>
+                    
+                    {isDaddyDuck && (
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-yellow-200">
+                            <h3 className="font-bold text-sm text-yellow-800 mb-2">Nouveau Programme / Info</h3>
+                            <textarea 
+                                className="w-full p-2 border rounded mb-2 text-sm" 
+                                rows="3" 
+                                placeholder="Commentaire ou description..." 
+                                value={comment} 
+                                onChange={e => setComment(e.target.value)}
+                            />
+                            <div className="flex items-center gap-2 mb-4">
+                                <label className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 text-xs font-bold">
+                                    <Icons.Plus size={16}/> {file ? file.name : "Joindre PDF (max 800ko)"}
+                                    <input type="file" accept="application/pdf" className="hidden" onChange={handleFileChange} />
+                                </label>
+                                {file && <button onClick={() => setFile(null)} className="text-red-500"><Icons.Trash2 size={16}/></button>}
+                            </div>
+                            <button onClick={publish} disabled={loading} className="w-full bg-yellow-400 font-bold py-2 rounded text-sm">
+                                {loading ? "Envoi..." : "Publier"}
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="space-y-4">
+                        {programs.length === 0 && <p className="text-center text-gray-400 text-sm">Aucun programme disponible.</p>}
+                        {programs.map(p => (
+                            <div key={p.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 relative">
+                                {isDaddyDuck && (
+                                    <button onClick={() => deleteProgram(p.id)} className="absolute top-3 right-3 text-red-400 hover:text-red-600">
+                                        <Icons.Trash2 size={16} />
+                                    </button>
+                                )}
+                                <div className="flex items-start gap-3">
+                                    <div className="bg-yellow-100 p-2 rounded-full text-yellow-600">
+                                        <Icons.Trophy size={24} /> {/* Using Trophy as icon placeholder, could be FileText */}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-xs text-gray-400 mb-1">{p.timestamp?.toDate().toLocaleDateString()}</p>
+                                        {p.comment && <p className="text-sm font-medium text-gray-800 mb-2 whitespace-pre-wrap">{p.comment}</p>}
+                                        {p.fileBase64 && (
+                                            <a href={p.fileBase64} download={p.fileName} className="inline-flex items-center gap-2 text-blue-600 text-sm font-bold hover:underline bg-blue-50 px-3 py-2 rounded-lg mt-1">
+                                                <Icons.Package size={16} /> {p.fileName}
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const FeedSection = ({ db, isDaddyDuck, notify, username }) => {
             const [msg, setMsg] = useState("");
             const [posts, setPosts] = useState([]);
             const [editing, setEditing] = useState(false);
             const [newMsg, setNewMsg] = useState("");
+            const [commentInputs, setCommentInputs] = useState({});
 
             useEffect(() => {
                 const unsub = window.firebaseModules.onSnapshot(
@@ -216,12 +341,14 @@
             }, [db]);
 
             useEffect(() => {
+                // Simplified query without sorting to avoid index requirement errors immediately
                 const q = window.firebaseModules.query(
                     window.firebaseModules.collection(db, 'duck_validations'),
                     window.firebaseModules.where('status', '==', 'approved')
                 );
                 const unsub = window.firebaseModules.onSnapshot(q, (snap) => {
                     const loadedPosts = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    // Sort client-side to be safe
                     loadedPosts.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
                     setPosts(loadedPosts);
                 }, (err) => console.error("Feed error:", err));
@@ -237,10 +364,32 @@
             };
 
             const deletePost = async (id) => {
+                // Suppression directe sans confirmation pour éviter les blocages
                 try {
                     await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'duck_validations', id));
                     notify("Photo supprimée", "success");
                 } catch(e) { notify("Erreur suppression", "error"); }
+            };
+
+            const sendComment = async (postId) => {
+                const txt = commentInputs[postId];
+                if(!txt || !txt.trim()) return;
+                
+                try {
+                     const postRef = window.firebaseModules.doc(db, 'duck_validations', postId);
+                     await window.firebaseModules.updateDoc(postRef, {
+                        comments: window.firebaseModules.arrayUnion({
+                            user: username,
+                            text: txt.trim(),
+                            date: new Date().toISOString()
+                        })
+                     });
+                     setCommentInputs(prev => ({...prev, [postId]: ''}));
+                     notify("Commentaire envoyé !", "success");
+                } catch(e) {
+                    console.error(e);
+                    notify("Erreur commentaire", "error");
+                }
             };
 
             return (
@@ -304,8 +453,35 @@
                                     )}
                                 </div>
                                 
-                                <div className="p-3">
+                                <div className="p-3 border-b border-gray-100">
                                     <p className="text-sm">🔥 <strong>{post.userName}</strong> a validé une séance !</p>
+                                </div>
+
+                                {/* Comments Section */}
+                                <div className="p-3 bg-gray-50">
+                                    {post.comments && post.comments.length > 0 && (
+                                        <div className="space-y-1 mb-2 max-h-32 overflow-y-auto">
+                                            {post.comments.map((c, idx) => (
+                                                <div key={idx} className="text-xs">
+                                                    <span className="font-bold">{c.user}: </span>
+                                                    <span className="text-gray-700">{c.text}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="text" 
+                                            className="flex-1 border rounded px-2 py-1 text-xs" 
+                                            placeholder="Bravo !..." 
+                                            value={commentInputs[post.id] || ''}
+                                            onChange={(e) => setCommentInputs({...commentInputs, [post.id]: e.target.value})}
+                                            onKeyPress={(e) => e.key === 'Enter' && sendComment(post.id)}
+                                        />
+                                        <button onClick={() => sendComment(post.id)} className="text-blue-500 hover:text-blue-700">
+                                            <Icons.MessageSquare size={16}/>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -463,7 +639,7 @@
                         <h2 className="text-2xl font-bold flex gap-2"><Icons.TrendingUp className="text-yellow-500"/> Stats</h2>
                         {isDaddyDuck && <select className="border rounded p-2" value={target} onChange={e => setTarget(e.target.value)}>{users.map(u => <option key={u} value={u}>{u}</option>)}</select>}
                     </div>
-                    <div className="bg-white p-4 rounded-2xl border"><h3 className="text-center font-bold mb-4">{target} moved weight</h3><div className="flex justify-center"><SpiderChart data={spider} /></div></div>
+                    <div className="bg-white p-4 rounded-2xl border"><h3 className="text-center font-bold mb-4">{target} mooved weight</h3><div className="flex justify-center"><SpiderChart data={spider} /></div></div>
                     {!isDaddyDuck && (
                         <div className="bg-white p-4 rounded-2xl border space-y-4">
                             <h3>Ajouter une perf</h3>
@@ -488,6 +664,8 @@
 
         const Leaderboard = ({ db, isDaddyDuck, notify }) => {
             const [users, setUsers] = useState([]);
+            const [allPhotos, setAllPhotos] = useState([]);
+
             useEffect(() => {
                 const q = window.firebaseModules.collection(db, 'duck_users');
                 return window.firebaseModules.onSnapshot(q, (s) => {
@@ -499,6 +677,20 @@
                 });
             }, [db, notify]);
 
+            useEffect(() => {
+                const q = window.firebaseModules.query(
+                    window.firebaseModules.collection(db, 'duck_validations'),
+                    window.firebaseModules.where('status', '==', 'approved')
+                    // Removed server-side ordering to prevent index errors
+                );
+                return window.firebaseModules.onSnapshot(q, (s) => {
+                    const photos = s.docs.map(d => ({id: d.id, ...d.data()}));
+                    // Sort client-side
+                    photos.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                    setAllPhotos(photos);
+                }, err => console.error("Mosaic error", err));
+            }, [db]);
+
             const reset = async (name) => {
                 try {
                     await window.firebaseModules.updateDoc(window.firebaseModules.doc(db, 'duck_users', name.toLowerCase()), { points: 0, weeklyWorkouts: 0 });
@@ -506,15 +698,31 @@
                 } catch(e) {}
             };
             return (
-                <div className="space-y-4">
-                    <h2 className="text-2xl font-bold px-2">Classement</h2>
-                    <div className="bg-white rounded-2xl border overflow-hidden">
-                        {users.map((u, i) => (
-                            <div key={u.name} className="flex justify-between p-4 border-b">
-                                <div className="flex items-center gap-4"><span className="font-bold w-6 text-center">{i+1}</span><div className="flex items-center gap-3"><DuckAvatar id={u.avatarId} size={32}/><div><p className="font-bold">{u.name}</p><p className="text-xs text-gray-500">{u.totalWorkouts||0} séances</p></div></div></div>
-                                <div className="flex items-center gap-3"><span className="font-bold text-yellow-600 flex gap-1">{u.points} <DuckIcon size={14}/></span>{isDaddyDuck && <button onClick={() => reset(u.name)} className="text-xs text-red-500 border px-2 py-1 rounded">Reset</button>}</div>
-                            </div>
-                        ))}
+                <div className="space-y-8">
+                    <div className="space-y-4">
+                        <h2 className="text-2xl font-bold px-2">Classement</h2>
+                        <div className="bg-white rounded-2xl border overflow-hidden">
+                            {users.map((u, i) => (
+                                <div key={u.name} className="flex justify-between p-4 border-b">
+                                    <div className="flex items-center gap-4"><span className="font-bold w-6 text-center">{i+1}</span><div className="flex items-center gap-3"><DuckAvatar id={u.avatarId} size={32}/><div><p className="font-bold">{u.name}</p><p className="text-xs text-gray-500">{u.totalWorkouts||0} séances</p></div></div></div>
+                                    <div className="flex items-center gap-3"><span className="font-bold text-yellow-600 flex gap-1">{u.points} <DuckIcon size={14}/></span>{isDaddyDuck && <button onClick={() => reset(u.name)} className="text-xs text-red-500 border px-2 py-1 rounded">Reset</button>}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h2 className="text-2xl font-bold px-2">Galerie</h2>
+                        <div className="grid grid-cols-3 gap-1">
+                            {allPhotos.map(p => (
+                                <div key={p.id} className="relative aspect-square bg-gray-100 overflow-hidden group">
+                                    <img src={p.photoBase64} alt={p.userName} className="w-full h-full object-cover" loading="lazy" />
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-end p-1 transition-opacity duration-200">
+                                        <span className="text-white text-xs font-bold truncate w-full">{p.userName}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             );
@@ -599,6 +807,11 @@
                         const d = s.data();
                         setUserData(d);
                         if (!d.avatarId && !isDaddy) setShowAvatar(true);
+                        if (d.lastWorkout) {
+                             const lastDate = new Date(d.lastWorkout.seconds * 1000);
+                             const diffDays = Math.ceil(Math.abs(new Date() - lastDate) / (1000 * 60 * 60 * 24));
+                             if (diffDays > 14 && d.points > 0) { notify("Semaine ratée = 0 pts !", "error"); mods.updateDoc(userRef, { points: 0 }); }
+                        }
                     } else {
                         mods.setDoc(userRef, { name: username, points: 0, totalWorkouts: 0, weeklyWorkouts: 0, joinedAt: mods.serverTimestamp(), avatarId: 'classic' });
                         setShowAvatar(true);
@@ -694,7 +907,10 @@
                         {isDaddy && activeTab === 'admin' && <div className="space-y-6"><div><h3 className="font-bold text-lg text-gray-700 mb-2">Livraisons ({deliveries.length})</h3>{deliveries.map(p => <div key={p.id} className="bg-blue-50 p-3 rounded-xl border border-blue-100 flex justify-between items-center mb-2"><div><p className="font-bold">{p.userName}</p><p className="text-sm">{p.itemName}</p></div><button onClick={() => deliver(p)} className="bg-blue-600 text-white px-3 py-1 rounded shadow">Livré</button></div>)}</div><hr/><div><h3 className="font-bold text-lg text-gray-700 mb-2">Validations ({validations.length})</h3>{validations.map(v => <div key={v.id} className="bg-white p-3 rounded-xl shadow-sm border mb-4"><div className="flex justify-between mb-2"><span className="font-bold">{v.userName}</span><span className="text-xs text-gray-400">{v.timestamp?.toDate().toLocaleTimeString()}</span></div><img src={v.photoBase64} className="rounded mb-2 max-h-48 object-contain bg-black w-full"/><div className="flex gap-2"><button onClick={() => handleRejectWorkout(v)} disabled={!!processingId} className="flex-1 border border-red-200 text-red-600 py-2 rounded font-bold">Refuser</button><button onClick={() => handleValidateWorkout(v)} disabled={!!processingId} className="flex-1 bg-yellow-400 py-2 rounded font-bold">Valider</button></div></div>)}</div></div>}
                         
                         {/* NOUVEL ONGLET FEED (ACCUEIL) */}
-                        {activeTab === 'feed' && <FeedSection db={db} isDaddyDuck={isDaddy} notify={notify} />}
+                        {activeTab === 'feed' && <FeedSection db={db} isDaddyDuck={isDaddy} notify={notify} username={username} />}
+
+                        {/* NOUVEL ONGLET PROGRAMME */}
+                        {activeTab === 'program' && <ProgramSection db={db} isDaddyDuck={isDaddy} notify={notify} />}
 
                         {!isDaddy && activeTab === 'home' && <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center"><h2 className="text-xl font-bold mb-4">Gagner un canard</h2>{!photo ? <div className={`border-2 border-dashed rounded-xl p-8 relative ${isCompressing ? 'bg-gray-50' : 'cursor-pointer'}`}><input type="file" accept="image/*" className="absolute inset-0 opacity-0 w-full h-full" onChange={handleFile} disabled={isCompressing} />{isCompressing ? <Icons.Loader className="animate-spin mx-auto"/> : <Icons.Camera className="mx-auto text-gray-400" size={32}/>}<p className="mt-2 text-sm font-bold text-gray-500">{isCompressing ? "Compression..." : "Prends ta photo"}</p></div> : <div className="space-y-4"><div className="relative rounded overflow-hidden bg-black"><img src={photo} className="w-full h-48 object-contain"/><button onClick={() => setPhoto(null)} className="absolute top-2 right-2 bg-white/80 p-1 rounded-full text-red-500"><Icons.Trash2/></button></div><button onClick={sendPhoto} className="w-full bg-yellow-400 font-bold py-3 rounded-xl shadow-md">Envoyer</button></div>}</div>}
                         {activeTab === 'shop' && <ShopSection rewards={rewards} userData={userData} handleBuy={buy} isDaddyDuck={isDaddy} db={db} notify={notify} />}
@@ -703,8 +919,8 @@
                     </div>
 
                     <div className="fixed bottom-0 w-full bg-white border-t p-2 flex justify-around pb-6 z-20">
-                        {isDaddy ? <><NavButton active={activeTab==='admin'} onClick={()=>setTab('admin')} icon={<Icons.CheckCircle/>} label="Admin"/><NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Feed"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Stats"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></> : 
-                        <><NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Accueil"/><NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Progrès"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></>}
+                        {isDaddy ? <><NavButton active={activeTab==='admin'} onClick={()=>setTab('admin')} icon={<Icons.CheckCircle/>} label="Admin"/><NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Feed"/><NavButton active={activeTab==='program'} onClick={()=>setTab('program')} icon={<Icons.FileText/>} label="Prog"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Stats"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></> : 
+                        <><NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Accueil"/><NavButton active={activeTab==='program'} onClick={()=>setTab('program')} icon={<Icons.FileText/>} label="Prog"/><NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Progrès"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></>}
                     </div>
                 </div>
             );
