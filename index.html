@@ -809,8 +809,22 @@
                         if (!d.avatarId && !isDaddy) setShowAvatar(true);
                         if (d.lastWorkout) {
                              const lastDate = new Date(d.lastWorkout.seconds * 1000);
-                             const diffDays = Math.ceil(Math.abs(new Date() - lastDate) / (1000 * 60 * 60 * 24));
+                             const now = new Date();
+                             
+                             // 1. Reset points if inactive > 14 days
+                             const diffDays = Math.ceil(Math.abs(now - lastDate) / (1000 * 60 * 60 * 24));
                              if (diffDays > 14 && d.points > 0) { notify("Semaine ratée = 0 pts !", "error"); mods.updateDoc(userRef, { points: 0 }); }
+                             
+                             // 2. Reset weekly workouts logic (Lundi à 00:00)
+                             const startOfWeek = new Date(now);
+                             const day = startOfWeek.getDay(); // 0 (Sun) -> 6 (Sat)
+                             const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+                             startOfWeek.setDate(diff);
+                             startOfWeek.setHours(0, 0, 0, 0);
+                             
+                             if (d.weeklyWorkouts > 0 && lastDate < startOfWeek) {
+                                 mods.updateDoc(userRef, { weeklyWorkouts: 0 });
+                             }
                         }
                     } else {
                         mods.setDoc(userRef, { name: username, points: 0, totalWorkouts: 0, weeklyWorkouts: 0, joinedAt: mods.serverTimestamp(), avatarId: 'classic' });
