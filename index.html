@@ -744,7 +744,7 @@
             const [purchases, setPurchases] = useState([]);
             const [photo, setPhoto] = useState(null);
             const [isCompressing, setComp] = useState(false);
-            const [processingId, setProcessingId] = useState(null); 
+            const [processingId, setProcessingId] = useState(null); 
             const fileInputRef = useRef(null);
             const [permissionError, setPermissionError] = useState(false);
 
@@ -780,15 +780,15 @@
                         if (!services.current.auth.currentUser) {
                              await mods.signInAnonymously(services.current.auth);
                         }
-                    } catch(e) { 
-                        console.error(e); 
+                    } catch(e) { 
+                        console.error(e); 
                         let userMsg = e.message;
                         if (e.code === 'auth/configuration-not-found' || e.message.includes('configuration-not-found')) {
                              userMsg = "L'authentification est mal configurée. Avez-vous activé 'Anonyme' dans la console Firebase (Authentication > Sign-in method) ?";
                         } else if (e.code === 'auth/admin-restricted-operation' || e.message.includes('admin-restricted-operation')) {
                              userMsg = "Opération restreinte. Vérifiez que l'authentification 'Anonyme' est bien ACTIVÉE dans la console Firebase.";
                         }
-                        setError("Erreur d'initialisation : " + userMsg); 
+                        setError("Erreur d'initialisation : " + userMsg); 
                     }
                 };
                 start();
