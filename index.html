@@ -14,6 +14,9 @@
         .firebase-error-banner { position: fixed; bottom: 0; left: 0; right: 0; background: #EF4444; color: white; padding: 1.5rem; font-size: 0.9rem; z-index: 10002; box-shadow: 0 -4px 6px rgba(0,0,0,0.3); border-top: 4px solid #B91C1C; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; }
         .firebase-error-banner a { color: #FEF3C7; text-decoration: underline; font-weight: bold; }
         .firebase-error-banner code { background: rgba(0,0,0,0.3); padding: 4px 8px; rounded: 4px; font-family: monospace; user-select: all; cursor: pointer; }
+        /* Scrollbar cachee pour la nav du bas */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -94,8 +97,6 @@
             User: (p) => <Icon {...p} path='<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' />,
             LogOut: (p) => <Icon {...p} path='<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>' />,
             CheckCircle: (p) => <Icon {...p} path='<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' />,
-            XCircle: (p) => <Icon {...p} path='<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>' />,
-            Clock: (p) => <Icon {...p} path='<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' />,
             Trash2: (p) => <Icon {...p} path='<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>' />,
             Loader: (p) => <Icon {...p} path='<path d="M21 12a9 9 0 1 1-6.219-8.56"/>' />,
             Info: (p) => <Icon {...p} path='<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>' />,
@@ -107,21 +108,25 @@
             Gift: (p) => <Icon {...p} path='<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>' />,
             Tag: (p) => <Icon {...p} path='<path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/>' />,
             TrendingUp: (p) => <Icon {...p} path='<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>' />,
-            Calendar: (p) => <Icon {...p} path='<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' />,
-            Users: (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />,
             Edit2: (p) => <Icon {...p} path='<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>' />,
             Home: (p) => <Icon {...p} path='<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/> <polyline points="9 22 9 12 15 12 15 22"/>' />,
             FileText: (p) => <Icon {...p} path='<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>' />,
-            Download: (p) => <Icon {...p} path='<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>' />,
             MessageSquare: (p) => <Icon {...p} path='<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' />,
-            Send: (p) => <Icon {...p} path='<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' />
+            Flame: (p) => <Icon {...p} path='<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>' />,
+            HeartPulse: (p) => <Icon {...p} path='<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 22v-3"/><path d="M12 15v-2"/><path d="M9 17h6"/>' />,
+            Crown: (p) => <Icon {...p} path='<path d="M2 4h20l-4 12H6L2 4z"/><path d="M22 20H2v-2h20v2z"/>' />,
+            Star: (p) => <Icon {...p} path='<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>' />
         };
 
         const DuckIcon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block"><path d="M5 16C5 18.5 7.5 20.5 11 20.5C14.5 20.5 19 19.5 19 16.5C19 14.5 17 13.5 15.5 13.5C15.5 13.5 16.5 10 18.5 10C19.6046 10 20.5 9.10457 20.5 8C20.5 6.89543 19.6046 6 18.5 6C16.5 6 13.5 7.5 13.5 11C13.5 13.5 11 13.5 9 13.5C6 13.5 5 14.5 5 16Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="18" cy="8.5" r="1" fill="black" /><path d="M20.5 8.5C21.5 8.5 22.5 9 22.5 9.5C22.5 10 20 10.5 19.5 10" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" /><path d="M10 16.5C10 16.5 12 15.5 14 16.5" stroke="#CA8A04" strokeWidth="1.5" strokeLinecap="round" /></svg>;
 
         const REWARD_ICONS = { 'gift': <Icons.Gift size={24} />, 'shirt': <Icons.Shirt size={24} />, 'coffee': <Icons.Coffee size={24} />, 'dumbbell': <Icons.Dumbbell size={24} />, 'tag': <Icons.Tag size={24} />, 'package': <Icons.Package size={24} /> };
         const REWARD_OPTIONS = [ { value: 'gift', label: 'Cadeau' }, { value: 'shirt', label: 'T-shirt/Vêtement' }, { value: 'coffee', label: 'Shaker/Boisson' }, { value: 'dumbbell', label: 'Matériel' }, { value: 'tag', label: 'Autre' } ];
-        const EXERCISES_LIST = [ 'Développé Couché', 'Squat', 'Soulevé de Terre', 'Presse Militaire', 'Traction (Lest)', 'Dips (Lest)' ];
+        
+        // Liste fondamentale ajoutée
+        const FUNDAMENTALS_LIST = ['Squat', 'Développé Couché', 'Soulevé de Terre', 'Presse Militaire'];
+        const EXERCISES_LIST = [ ...FUNDAMENTALS_LIST, 'Traction (Lest)', 'Dips (Lest)' ];
+        
         const DUCK_VARIANTS = { 'classic': { name: 'Le Coin-mun', color: '#FACC15', item: null }, 'muscle': { name: 'Le Coin-Coin Musclé', color: '#FACC15', item: 'headband', eye: 'angry' }, 'secret': { name: 'Le Coin-fidentiel', color: '#FACC15', item: 'glasses', eye: 'normal' }, 'music': { name: 'Le Coin-positeur', color: '#FACC15', item: 'piano', eye: 'normal' }, 'napoleon': { name: 'Le Coin-quérant', color: '#FACC15', item: 'bicorne', eye: 'determined' }, 'crazy': { name: 'Coin-plètement à l\'ouest', color: '#FACC15', item: 'swirl', eye: 'spiral' }, 'wizard': { name: 'Le Coin-jurateur', color: '#A855F7', item: 'hat', eye: 'normal' }, 'devil': { name: 'Le Coin-fernal', color: '#EF4444', item: 'horns', eye: 'angry' }, 'cointreau': { name: 'Le Coin-treau', color: '#FACC15', item: 'bottle', eye: 'drunk' }, 'coince': { name: 'Le Coin-cé', color: '#FACC15', item: 'box', eye: 'worry' }, 'coinche': { name: 'Le Coin-che', color: '#FACC15', item: 'cards', eye: 'suspicious' }, 'coincidence': { name: 'Le Coin-cidence', color: '#FACC15', item: null, eye: 'surprised' }, 'bitcoin': { name: 'Le Bit-coin', color: '#FACC15', item: 'money', eye: 'dollar' }, 'recoin': { name: 'Le Re-coin', color: '#CA8A04', item: 'hole', eye: 'normal' }, 'coinfeur': { name: 'Le Coin-feur', color: '#FACC15', item: 'wig', eye: 'fabulous' }, 'coinplexe': { name: 'Le Coin-plexé', color: '#EF4444', item: 'sweat', eye: 'shy' }, 'consterne': { name: 'Le Coin-sterné', color: '#FACC15', item: 'fist', eye: 'yell' }, 'conflit': { name: 'Le Coin-flit', color: '#FACC15', item: 'knife', eye: 'angry' }, 'concentration': { name: 'Le Coin-centration', color: '#FACC15', item: 'book', eye: 'reading' }, 'consciencieux': { name: 'Le Coin-sciencieux', color: '#FACC15', item: 'ruler', eye: 'normal' }, 'confiance': { name: 'Le Coin-fiance absolue', color: '#FACC15', item: 'moto', eye: 'cool' }, 'confine': { name: 'Le Coin-finé', color: '#FACC15', item: 'house', eye: 'bored' }, 'nature': { name: 'Le Coin-necté nature', color: '#FACC15', item: 'tree', eye: 'peace' }, 'conchita': { name: 'Le Coin-chita', color: '#FACC15', item: 'dress', eye: 'lashes' }, 'conjuration': { name: 'Le Coin-jurations', color: '#A855F7', item: 'wand_smoke', eye: 'magic' }, };
 
         const DuckAvatar = ({ id = 'classic', size = 40 }) => {
@@ -196,11 +201,104 @@
             reader.onerror = () => reject(new Error("Erreur lecture"));
         });
 
-        const NavButton = ({ active, onClick, icon, label }) => <button onClick={onClick} className={`flex flex-col items-center gap-1 ${active ? 'text-yellow-500' : 'text-gray-400'}`}>{React.cloneElement(icon, { size: 24, strokeWidth: active ? 2.5 : 2 })}<span className="text-xs font-medium">{label}</span></button>;
+        const NavButton = ({ active, onClick, icon, label }) => <button onClick={onClick} className={`flex flex-col items-center justify-center flex-1 gap-1 ${active ? 'text-yellow-500' : 'text-gray-400'}`}>{React.cloneElement(icon, { size: 24, strokeWidth: active ? 2.5 : 2 })}<span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{label}</span></button>;
+
+        // --- ENCARTS GLOBAUX ---
+        const TopBanners = ({ db, isDaddyDuck, notify }) => {
+            const [duckOfMonth, setDuckOfMonth] = useState(null);
+            const [isEndOfMonth, setIsEndOfMonth] = useState(false);
+            const [photoOfMonth, setPhotoOfMonth] = useState(null);
+
+            useEffect(() => {
+                const checkDate = () => {
+                    const now = new Date();
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                    setIsEndOfMonth(now.getDate() === lastDay);
+                };
+                checkDate();
+            }, []);
+
+            useEffect(() => {
+                // Photo du mois
+                const unsub = window.firebaseModules.onSnapshot(window.firebaseModules.doc(db, 'duck_misc', 'photo_of_month'), (doc) => {
+                    if (doc.exists()) setPhotoOfMonth(doc.data());
+                });
+                return () => unsub();
+            }, [db]);
+
+            useEffect(() => {
+                if (!isEndOfMonth) return;
+                // Calcul simple dynamique du Duck of the month : max séances + intensité moyenne > 3
+                const now = new Date();
+                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                const q = window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_validations'), window.firebaseModules.where('status', '==', 'approved'));
+                window.firebaseModules.getDocs(q).then(snap => {
+                    const stats = {};
+                    snap.docs.forEach(d => {
+                        const v = d.data();
+                        if (v.type !== 'workout' || !v.timestamp) return;
+                        if (v.timestamp.toDate() >= start) {
+                            if (!stats[v.userLowName]) stats[v.userLowName] = { name: v.userName, avatar: v.userAvatar, count: 0, totalInt: 0 };
+                            stats[v.userLowName].count++;
+                            stats[v.userLowName].totalInt += (v.intensity || 0);
+                        }
+                    });
+                    let bestUser = null;
+                    let maxScore = -1;
+                    Object.values(stats).forEach(u => {
+                        const avgInt = u.count > 0 ? u.totalInt / u.count : 0;
+                        if (avgInt > 3) {
+                            const score = u.count * 10 + avgInt; // Simplification du score
+                            if (score > maxScore) { maxScore = score; bestUser = u; }
+                        }
+                    });
+                    setDuckOfMonth(bestUser);
+                });
+            }, [db, isEndOfMonth]);
+
+            return (
+                <div className="flex flex-col gap-3 p-4 pt-2">
+                    {/* Duck of the Month */}
+                    <div className="w-full min-h-[100px] bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-xl p-4 shadow-md flex items-center justify-between border border-yellow-400">
+                        <div>
+                            <h3 className="text-xs uppercase font-black text-yellow-900 opacity-80 flex items-center gap-1">
+                                <Icons.Crown size={14} /> Duck of the Month <DuckIcon size={14} />
+                            </h3>
+                            {isEndOfMonth && duckOfMonth ? (
+                                <p className="text-xl font-black text-gray-900 mt-1 truncate">{duckOfMonth.name}</p>
+                            ) : (
+                                <p className="font-bold text-yellow-800/50 mt-1 italic text-sm">En attente...</p>
+                            )}
+                        </div>
+                        <div className="bg-white/30 rounded-full p-2 shadow-inner">
+                            {isEndOfMonth && duckOfMonth ? <DuckAvatar id={duckOfMonth.avatar} size={48} /> : <Icons.Crown className="text-yellow-100" size={40} />}
+                        </div>
+                    </div>
+
+                    {/* Coin-graphie du mois */}
+                    <div className="w-full min-h-[120px] bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-4 shadow-md flex items-center justify-between border border-purple-400 relative overflow-hidden group">
+                        {photoOfMonth && (
+                            <img src={photoOfMonth.photoBase64} className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm mix-blend-overlay transition-opacity duration-300 group-hover:opacity-30" />
+                        )}
+                        <div className="relative z-10 flex-1">
+                            <h3 className="text-xs uppercase font-black text-purple-100 shadow-sm mb-1 drop-shadow-md">Coin-graphie du mois</h3>
+                            <p className="font-bold text-white text-lg truncate drop-shadow-md">
+                                {photoOfMonth ? photoOfMonth.userName : <span className="italic opacity-50">Aucune photo</span>}
+                            </p>
+                            <Icons.Star className="text-yellow-300 drop-shadow-lg mt-2" size={24}/>
+                        </div>
+                        {photoOfMonth && (
+                            <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-lg overflow-hidden border-2 border-white/50 shadow-lg ml-2 shrink-0 bg-black">
+                                <img src={photoOfMonth.photoBase64} className="w-full h-full object-contain" />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
 
         // --- COMPOSANTS DE L'APPLICATION ---
         
-        // --- NOUVEAU COMPOSANT PROGRAMMES ---
         const ProgramSection = ({ db, isDaddyDuck, notify }) => {
             const [programs, setPrograms] = useState([]);
             const [comment, setComment] = useState("");
@@ -208,30 +306,22 @@
             const [loading, setLoading] = useState(false);
 
             useEffect(() => {
-                // Fetch all, sort in JS (RULE 2 compliance + no index required)
                 const q = window.firebaseModules.collection(db, 'duck_programs');
                 const unsub = window.firebaseModules.onSnapshot(q, (snap) => {
                     const loadedPrograms = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     loadedPrograms.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
                     setPrograms(loadedPrograms);
-                }, (err) => console.error("Program error:", err));
+                });
                 return () => unsub();
             }, [db]);
 
             const handleFileChange = async (e) => {
                 const f = e.target.files[0];
                 if (!f) return;
-                if (f.size > 800 * 1024) { // Limit 800KB for Firestore
-                    notify("Fichier trop lourd (max 800ko)", "error");
-                    return;
-                }
-                if (f.type !== 'application/pdf') {
-                    notify("Format PDF uniquement", "error");
-                    return;
-                }
-                
+                if (f.size > 800 * 1024) return notify("Fichier trop lourd (max 800ko)", "error");
+                if (f.type !== 'application/pdf') return notify("Format PDF uniquement", "error");
                 const reader = new FileReader();
-                reader.onload = (e) => setFile({ name: f.name, base64: e.target.result });
+                reader.onload = (ev) => setFile({ name: f.name, base64: ev.target.result });
                 reader.readAsDataURL(f);
             };
 
@@ -240,77 +330,48 @@
                 setLoading(true);
                 try {
                     await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'duck_programs'), {
-                        comment,
-                        fileName: file ? file.name : null,
-                        fileBase64: file ? file.base64 : null,
-                        timestamp: window.firebaseModules.serverTimestamp()
+                        comment, fileName: file?.name || null, fileBase64: file?.base64 || null, timestamp: window.firebaseModules.serverTimestamp()
                     });
-                    setComment("");
-                    setFile(null);
-                    notify("Programme publié !", "success");
-                } catch(e) {
-                    console.error(e);
-                    notify("Erreur lors de la publication", "error");
-                }
+                    setComment(""); setFile(null); notify("Programme publié !", "success");
+                } catch(e) { notify("Erreur lors de la publication", "error"); }
                 setLoading(false);
             };
 
             const deleteProgram = async (id) => {
-                if(!confirm("Supprimer ce programme ?")) return;
-                try {
+                if(confirm("Supprimer ce programme ?")) {
                     await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'duck_programs', id));
                     notify("Supprimé", "success");
-                } catch(e) { notify("Erreur", "error"); }
+                }
             };
 
             return (
                 <div className="space-y-6">
                     <h2 className="text-2xl font-bold px-2">Programmes & Actus</h2>
-                    
                     {isDaddyDuck && (
                         <div className="bg-white p-4 rounded-2xl shadow-sm border border-yellow-200">
                             <h3 className="font-bold text-sm text-yellow-800 mb-2">Nouveau Programme / Info</h3>
-                            <textarea 
-                                className="w-full p-2 border rounded mb-2 text-sm" 
-                                rows="3" 
-                                placeholder="Commentaire ou description..." 
-                                value={comment} 
-                                onChange={e => setComment(e.target.value)}
-                            />
+                            <textarea className="w-full p-2 border rounded mb-2 text-sm" rows="3" placeholder="Description..." value={comment} onChange={e => setComment(e.target.value)} />
                             <div className="flex items-center gap-2 mb-4">
                                 <label className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 text-xs font-bold">
-                                    <Icons.Plus size={16}/> {file ? file.name : "Joindre PDF (max 800ko)"}
+                                    <Icons.Plus size={16}/> {file ? file.name : "Joindre PDF"}
                                     <input type="file" accept="application/pdf" className="hidden" onChange={handleFileChange} />
                                 </label>
                                 {file && <button onClick={() => setFile(null)} className="text-red-500"><Icons.Trash2 size={16}/></button>}
                             </div>
-                            <button onClick={publish} disabled={loading} className="w-full bg-yellow-400 font-bold py-2 rounded text-sm">
-                                {loading ? "Envoi..." : "Publier"}
-                            </button>
+                            <button onClick={publish} disabled={loading} className="w-full bg-yellow-400 font-bold py-2 rounded text-sm">{loading ? "Envoi..." : "Publier"}</button>
                         </div>
                     )}
-
                     <div className="space-y-4">
-                        {programs.length === 0 && <p className="text-center text-gray-400 text-sm">Aucun programme disponible.</p>}
+                        {programs.length === 0 && <p className="text-center text-gray-400 text-sm">Aucun programme.</p>}
                         {programs.map(p => (
                             <div key={p.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 relative">
-                                {isDaddyDuck && (
-                                    <button onClick={() => deleteProgram(p.id)} className="absolute top-3 right-3 text-red-400 hover:text-red-600">
-                                        <Icons.Trash2 size={16} />
-                                    </button>
-                                )}
+                                {isDaddyDuck && <button onClick={() => deleteProgram(p.id)} className="absolute top-3 right-3 text-red-400 hover:text-red-600"><Icons.Trash2 size={16} /></button>}
                                 <div className="flex items-start gap-3">
-                                    <div className="bg-yellow-100 p-2 rounded-full text-yellow-600">
-                                        <Icons.Trophy size={24} /> {/* Using Trophy as icon placeholder, could be FileText */}
-                                    </div>
+                                    <div className="bg-yellow-100 p-2 rounded-full text-yellow-600"><Icons.Trophy size={24} /></div>
                                     <div className="flex-1">
                                         <p className="text-xs text-gray-400 mb-1">{p.timestamp?.toDate().toLocaleDateString()}</p>
                                         {p.comment && <p className="text-sm font-medium text-gray-800 mb-2 whitespace-pre-wrap">{p.comment}</p>}
-                                        {p.fileBase64 && (
-                                            <a href={p.fileBase64} download={p.fileName} className="inline-flex items-center gap-2 text-blue-600 text-sm font-bold hover:underline bg-blue-50 px-3 py-2 rounded-lg mt-1">
-                                                <Icons.Package size={16} /> {p.fileName}
-                                            </a>
-                                        )}
+                                        {p.fileBase64 && <a href={p.fileBase64} download={p.fileName} className="inline-flex items-center gap-2 text-blue-600 text-sm font-bold hover:underline bg-blue-50 px-3 py-2 rounded-lg mt-1"><Icons.Package size={16} /> {p.fileName}</a>}
                                     </div>
                                 </div>
                             </div>
@@ -320,220 +381,129 @@
             );
         };
 
-        const FeedSection = ({ db, isDaddyDuck, notify, username }) => {
+        const FeedSection = ({ db, isDaddyDuck, notify, username, setPhotoOfMonth }) => {
             const [msg, setMsg] = useState("");
             const [posts, setPosts] = useState([]);
+            const [events, setEvents] = useState([]);
             const [editing, setEditing] = useState(false);
             const [newMsg, setNewMsg] = useState("");
             const [commentInputs, setCommentInputs] = useState({});
 
             useEffect(() => {
-                const unsub = window.firebaseModules.onSnapshot(
-                    window.firebaseModules.doc(db, 'duck_misc', 'daily_message'),
-                    (doc) => {
-                        if (doc.exists()) {
-                            setMsg(doc.data().text);
-                            setNewMsg(doc.data().text);
-                        }
-                    }
-                );
+                const unsub = window.firebaseModules.onSnapshot(window.firebaseModules.doc(db, 'duck_misc', 'daily_message'), (doc) => {
+                    if (doc.exists()) { setMsg(doc.data().text); setNewMsg(doc.data().text); }
+                });
                 return () => unsub();
             }, [db]);
 
             useEffect(() => {
-                // Simplified query without sorting to avoid index requirement errors immediately
-                const q = window.firebaseModules.query(
-                    window.firebaseModules.collection(db, 'duck_validations'),
-                    window.firebaseModules.where('status', '==', 'approved')
-                );
-                const unsub = window.firebaseModules.onSnapshot(q, (snap) => {
-                    const loadedPosts = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    // Sort client-side to be safe
-                    loadedPosts.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                const qPhotos = window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_validations'), window.firebaseModules.where('status', '==', 'approved'));
+                const unsubPhotos = window.firebaseModules.onSnapshot(qPhotos, (snap) => {
+                    const loadedPosts = snap.docs.map(d => ({id: d.id, _feedType: 'photo', ...d.data()})).filter(p => p.type !== 'cardio');
                     setPosts(loadedPosts);
-                }, (err) => console.error("Feed error:", err));
-                return () => unsub();
+                });
+
+                const qEvents = window.firebaseModules.collection(db, 'duck_feed_events');
+                const unsubEvents = window.firebaseModules.onSnapshot(qEvents, (snap) => {
+                    setEvents(snap.docs.map(d => ({id: d.id, _feedType: 'event', ...d.data()})));
+                });
+                return () => { unsubPhotos(); unsubEvents(); };
             }, [db]);
 
             const saveMessage = async () => {
-                try {
-                    await window.firebaseModules.setDoc(window.firebaseModules.doc(db, 'duck_misc', 'daily_message'), { text: newMsg, updatedAt: window.firebaseModules.serverTimestamp() });
-                    setEditing(false);
-                    notify("Message du jour mis à jour !", "success");
-                } catch (e) { notify("Erreur", "error"); }
+                await window.firebaseModules.setDoc(window.firebaseModules.doc(db, 'duck_misc', 'daily_message'), { text: newMsg, updatedAt: window.firebaseModules.serverTimestamp() });
+                setEditing(false); notify("Mis à jour !", "success");
             };
 
-            const deletePost = async (id) => {
-                // Suppression directe sans confirmation pour éviter les blocages
-                try {
-                    await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'duck_validations', id));
-                    notify("Photo supprimée", "success");
-                } catch(e) { notify("Erreur suppression", "error"); }
+            const deletePost = async (id, isEvent = false) => {
+                await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, isEvent ? 'duck_feed_events' : 'duck_validations', id));
+                notify("Supprimé", "success");
             };
 
             const sendComment = async (postId) => {
                 const txt = commentInputs[postId];
                 if(!txt || !txt.trim()) return;
-                
-                try {
-                     const postRef = window.firebaseModules.doc(db, 'duck_validations', postId);
-                     await window.firebaseModules.updateDoc(postRef, {
-                        comments: window.firebaseModules.arrayUnion({
-                            user: username,
-                            text: txt.trim(),
-                            date: new Date().toISOString()
-                        })
-                     });
-                     setCommentInputs(prev => ({...prev, [postId]: ''}));
-                     notify("Commentaire envoyé !", "success");
-                } catch(e) {
-                    console.error(e);
-                    notify("Erreur commentaire", "error");
-                }
+                await window.firebaseModules.updateDoc(window.firebaseModules.doc(db, 'duck_validations', postId), { comments: window.firebaseModules.arrayUnion({ user: username, text: txt.trim(), date: new Date().toISOString() }) });
+                setCommentInputs(prev => ({...prev, [postId]: ''}));
+                notify("Commentaire envoyé !", "success");
             };
+
+            const feedItems = [...posts, ...events].sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
             return (
                 <div className="space-y-6">
-                    {/* Daily Coincoin */}
                     <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-r shadow-sm relative">
-                        <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-black text-yellow-800 uppercase tracking-wide text-xs">📢 Daily Coincoin</h3>
-                            {isDaddyDuck && !editing && (
-                                <button onClick={() => setEditing(true)} className="text-yellow-700 bg-yellow-200 p-1 rounded hover:bg-yellow-300">
-                                    <Icons.Edit2 size={14}/>
-                                </button>
-                            )}
+                        <div className="flex justify-between items-start mb-2"><h3 className="font-black text-yellow-800 uppercase tracking-wide text-xs">📢 Daily Coincoin</h3>
+                            {isDaddyDuck && !editing && <button onClick={() => setEditing(true)} className="text-yellow-700 bg-yellow-200 p-1 rounded hover:bg-yellow-300"><Icons.Edit2 size={14}/></button>}
                         </div>
-                        
                         {editing ? (
                             <div className="mt-1">
-                                <textarea 
-                                    className="w-full p-2 rounded border border-yellow-300 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500" 
-                                    rows="3" 
-                                    value={newMsg} 
-                                    onChange={e => setNewMsg(e.target.value)} 
-                                    placeholder="Écris le message du jour..."
-                                />
-                                <div className="flex justify-end gap-2 mt-2">
-                                    <button onClick={() => setEditing(false)} className="text-xs font-bold text-gray-500 hover:text-gray-700">Annuler</button>
-                                    <button onClick={saveMessage} className="bg-yellow-500 text-white px-3 py-1 rounded text-xs font-bold hover:bg-yellow-600">Publier</button>
-                                </div>
+                                <textarea className="w-full p-2 rounded border border-yellow-300 text-sm focus:outline-none" rows="3" value={newMsg} onChange={e => setNewMsg(e.target.value)} />
+                                <div className="flex justify-end gap-2 mt-2"><button onClick={() => setEditing(false)} className="text-xs font-bold text-gray-500">Annuler</button><button onClick={saveMessage} className="bg-yellow-500 text-white px-3 py-1 rounded text-xs font-bold">Publier</button></div>
                             </div>
-                        ) : (
-                            <p className="font-medium text-yellow-900 italic">
-                                {msg ? `"${msg}"` : (isDaddyDuck ? "Cliquez sur le crayon pour écrire un message." : "Pas de message aujourd'hui.")}
-                            </p>
-                        )}
+                        ) : <p className="font-medium text-yellow-900 italic">{msg ? `"${msg}"` : "Pas de message."}</p>}
                     </div>
 
-                    {/* Feed */}
                     <div className="space-y-4">
                         <h2 className="text-2xl font-bold px-2">Le Mur des Canards</h2>
-                        {posts.length === 0 ? <p className="text-center text-gray-400 py-8">Aucune photo validée pour le moment.</p> : null}
-                        {posts.map(post => (
-                            <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative group">
-                                <div className="p-3 flex items-center gap-3">
-                                    <DuckAvatar id={post.userAvatar || 'classic'} size={32} />
-                                    <div>
-                                        <p className="font-bold text-sm">{post.userName}</p>
-                                        <p className="text-xs text-gray-400">{post.timestamp?.toDate().toLocaleString()}</p>
+                        {feedItems.length === 0 && <p className="text-center text-gray-400 py-8">Aucune actus.</p>}
+                        {feedItems.map(item => {
+                            if (item._feedType === 'event') {
+                                return (
+                                    <div key={item.id} className="bg-gradient-to-r from-blue-100 to-indigo-100 p-4 rounded-2xl shadow-sm border border-blue-200 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <DuckAvatar id={item.userAvatar} size={40} />
+                                            <div><p className="font-bold text-blue-900">{item.userName}</p><p className="text-xs font-bold text-blue-700">A terminé ses 4 séances cardio ! +1 PT <Icons.HeartPulse size={14} className="inline"/></p></div>
+                                        </div>
+                                        {isDaddyDuck && <button onClick={() => deletePost(item.id, true)} className="text-red-400"><Icons.Trash2 size={16}/></button>}
                                     </div>
-                                </div>
-                                
-                                <div className="bg-black aspect-square flex items-center justify-center overflow-hidden relative">
-                                    <img src={post.photoBase64} alt="Preuve" className="w-full h-full object-cover" />
-                                    {isDaddyDuck && (
-                                        <button 
-                                            onClick={() => deletePost(post.id)}
-                                            className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full shadow-md opacity-90 hover:opacity-100 transition-opacity"
-                                            title="Supprimer cette photo"
-                                        >
-                                            <Icons.Trash2 size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                                
-                                <div className="p-3 border-b border-gray-100">
-                                    <p className="text-sm">🔥 <strong>{post.userName}</strong> a validé une séance !</p>
-                                </div>
-
-                                {/* Comments Section */}
-                                <div className="p-3 bg-gray-50">
-                                    {post.comments && post.comments.length > 0 && (
-                                        <div className="space-y-1 mb-2 max-h-32 overflow-y-auto">
-                                            {post.comments.map((c, idx) => (
-                                                <div key={idx} className="text-xs">
-                                                    <span className="font-bold">{c.user}: </span>
-                                                    <span className="text-gray-700">{c.text}</span>
+                                );
+                            }
+                            return (
+                                <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative">
+                                    <div className="p-3 flex justify-between items-center">
+                                        <div className="flex items-center gap-3"><DuckAvatar id={item.userAvatar || 'classic'} size={32} /><div><p className="font-bold text-sm">{item.userName}</p><p className="text-xs text-gray-400">{item.timestamp?.toDate().toLocaleString()}</p></div></div>
+                                        {item.intensity && <span className="bg-red-100 text-red-600 font-bold text-xs px-2 py-1 rounded flex items-center gap-1"><Icons.Flame size={12}/> Int: {item.intensity}/10</span>}
+                                    </div>
+                                    <div className="bg-black aspect-square relative">
+                                        <img src={item.photoBase64} alt="Preuve" className="w-full h-full object-cover" />
+                                        {isDaddyDuck && (
+                                            <div className="absolute top-2 right-2 flex gap-2">
+                                                <button onClick={() => setPhotoOfMonth(item)} className="bg-purple-600 text-white p-2 rounded-full shadow-md hover:bg-purple-700" title="Définir comme Coin-graphie du mois"><Icons.Star size={16}/></button>
+                                                <button onClick={() => deletePost(item.id)} className="bg-red-600 text-white p-2 rounded-full shadow-md"><Icons.Trash2 size={16} /></button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {item.exercises && item.exercises.length > 0 && (
+                                        <div className="p-3 border-b border-gray-100 bg-white flex flex-wrap gap-2">
+                                            {item.exercises.map((ex, idx) => (
+                                                <div key={idx} className="bg-yellow-50 border border-yellow-200 text-yellow-900 text-xs font-bold px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                                                    <Icons.Dumbbell size={12} className="text-yellow-600"/>
+                                                    {ex.name} : {ex.reps} x {ex.weight}kg
                                                 </div>
                                             ))}
                                         </div>
                                     )}
-                                    <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            className="flex-1 border rounded px-2 py-1 text-xs" 
-                                            placeholder="Bravo !..." 
-                                            value={commentInputs[post.id] || ''}
-                                            onChange={(e) => setCommentInputs({...commentInputs, [post.id]: e.target.value})}
-                                            onKeyPress={(e) => e.key === 'Enter' && sendComment(post.id)}
-                                        />
-                                        <button onClick={() => sendComment(post.id)} className="text-blue-500 hover:text-blue-700">
-                                            <Icons.MessageSquare size={16}/>
-                                        </button>
+                                    <div className="p-3 bg-gray-50">
+                                        {item.comments && item.comments.length > 0 && <div className="space-y-1 mb-2 max-h-32 overflow-y-auto">{item.comments.map((c, idx) => <div key={idx} className="text-xs"><span className="font-bold">{c.user}: </span><span className="text-gray-700">{c.text}</span></div>)}</div>}
+                                        <div className="flex gap-2"><input type="text" className="flex-1 border rounded px-2 py-1 text-xs" placeholder="Bravo !..." value={commentInputs[item.id] || ''} onChange={(e) => setCommentInputs({...commentInputs, [item.id]: e.target.value})} onKeyPress={(e) => e.key === 'Enter' && sendComment(item.id)}/><button onClick={() => sendComment(item.id)} className="text-blue-500"><Icons.MessageSquare size={16}/></button></div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             );
         };
 
-        const ShopSection = ({ rewards, userData, handleBuy, isDaddyDuck, db, notify }) => {
+        const ShopSection = ({ rewards, userData, handleBuy, isDaddyDuck, db, notify }) => { /* Unchanged logic from previous */
             const [newR, setNewR] = useState({ name: '', cost: '', iconKey: 'gift' });
-            const add = async (e) => {
-                e.preventDefault();
-                if (!newR.name || !newR.cost) return;
-                try {
-                    await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'duck_rewards'), { name: newR.name, cost: parseInt(newR.cost), iconKey: newR.iconKey });
-                    setNewR({ name: '', cost: '', iconKey: 'gift' });
-                    notify("Ajouté !", "success");
-                } catch (e) { notify("Erreur.", "error"); }
-            };
-            const del = async (id) => {
-                try {
-                    await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'duck_rewards', id));
-                    notify("Supprimé.", "success");
-                } catch(e) { notify("Erreur.", "error"); }
-            };
+            const add = async (e) => { e.preventDefault(); if(newR.name) { await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'duck_rewards'), { name: newR.name, cost: parseInt(newR.cost), iconKey: newR.iconKey }); setNewR({name:'', cost:'', iconKey:'gift'}); notify("Ajouté"); } };
+            const del = async (id) => { await window.firebaseModules.deleteDoc(window.firebaseModules.doc(db, 'duck_rewards', id)); notify("Supprimé"); };
             return (
-                <div className="space-y-4">
-                    <h2 className="text-2xl font-bold px-2">La Boutique</h2>
-                    {isDaddyDuck && (
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-yellow-200 mb-6">
-                            <h3 className="font-bold text-sm text-yellow-800 mb-2 flex items-center gap-2"><Icons.Plus size={16}/> Ajouter</h3>
-                            <form onSubmit={add} className="space-y-3">
-                                <input className="w-full border rounded p-2 text-sm" placeholder="Nom" value={newR.name} onChange={e => setNewR({...newR, name: e.target.value})} />
-                                <div className="flex gap-2">
-                                    <input type="number" className="w-1/3 border rounded p-2 text-sm" placeholder="Prix" value={newR.cost} onChange={e => setNewR({...newR, cost: e.target.value})} />
-                                    <select className="w-2/3 border rounded p-2 text-sm" value={newR.iconKey} onChange={e => setNewR({...newR, iconKey: e.target.value})}>{REWARD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-                                </div>
-                                <button className="w-full bg-yellow-400 font-bold py-2 rounded text-sm">Ajouter</button>
-                            </form>
-                        </div>
-                    )}
-                    <div className="grid grid-cols-1 gap-4">
-                        {rewards.map(r => (
-                            <div key={r.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-                                <div className="flex items-center gap-4">
-                                    <span className="text-3xl bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full text-gray-600">{REWARD_ICONS[r.iconKey] || <Icons.Gift />}</span>
-                                    <div><h3 className="font-bold text-gray-800">{r.name}</h3><p className="text-yellow-600 font-bold text-sm flex items-center gap-1">{r.cost} <DuckIcon size={14} /></p></div>
-                                </div>
-                                {isDaddyDuck ? <button onClick={() => del(r.id)} className="text-red-500 p-2"><Icons.Trash2 size={20}/></button> : <button onClick={() => handleBuy(r)} disabled={userData?.points < r.cost} className={`px-4 py-2 rounded-lg font-bold text-sm ${userData?.points >= r.cost ? 'bg-black text-white' : 'bg-gray-200 text-gray-400'}`}>Acheter</button>}
-                            </div>
-                        ))}
-                    </div>
+                <div className="space-y-4"><h2 className="text-2xl font-bold px-2">La Boutique</h2>
+                    {isDaddyDuck && <div className="bg-white p-4 rounded-2xl shadow border mb-6"><h3 className="font-bold text-sm mb-2"><Icons.Plus size={16}/> Ajouter</h3><form onSubmit={add} className="space-y-3"><input className="w-full border rounded p-2 text-sm" placeholder="Nom" value={newR.name} onChange={e=>setNewR({...newR,name:e.target.value})}/><div className="flex gap-2"><input type="number" className="w-1/3 border rounded p-2 text-sm" placeholder="Prix" value={newR.cost} onChange={e=>setNewR({...newR,cost:e.target.value})}/><select className="w-2/3 border rounded p-2 text-sm" value={newR.iconKey} onChange={e=>setNewR({...newR,iconKey:e.target.value})}>{REWARD_OPTIONS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select></div><button className="w-full bg-yellow-400 font-bold py-2 rounded text-sm">Ajouter</button></form></div>}
+                    <div className="grid gap-4">{rewards.map(r => <div key={r.id} className="bg-white p-4 rounded-2xl shadow flex justify-between items-center"><div className="flex items-center gap-4"><span className="text-3xl bg-gray-100 w-12 h-12 flex justify-center items-center rounded-full text-gray-600">{REWARD_ICONS[r.iconKey] || <Icons.Gift />}</span><div><h3 className="font-bold">{r.name}</h3><p className="text-yellow-600 font-bold text-sm flex items-center gap-1">{r.cost} <DuckIcon size={14} /></p></div></div>{isDaddyDuck ? <button onClick={()=>del(r.id)} className="text-red-500"><Icons.Trash2 size={20}/></button> : <button onClick={()=>handleBuy(r)} disabled={userData?.points<r.cost} className={`px-4 py-2 rounded-lg font-bold text-sm ${userData?.points>=r.cost?'bg-black text-white':'bg-gray-200 text-gray-400'}`}>Acheter</button>}</div>)}</div>
                 </div>
             );
         };
@@ -541,96 +511,104 @@
         const SpiderChart = ({ data }) => {
             const size = 300, center = size/2, radius = 100, labels = EXERCISES_LIST;
             const maxVal = Math.max(...Object.values(data), 100);
-            const pts = labels.map((l, i) => {
-                const a = (Math.PI*2*i)/labels.length - Math.PI/2;
-                const r = ((data[l]||0)/maxVal)*radius;
-                return `${center + r*Math.cos(a)},${center + r*Math.sin(a)}`;
-            }).join(' ');
+            const pts = labels.map((l, i) => { const a = (Math.PI*2*i)/labels.length - Math.PI/2; const r = ((data[l]||0)/maxVal)*radius; return `${center + r*Math.cos(a)},${center + r*Math.sin(a)}`; }).join(' ');
             return (
                 <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
                     {[0.25, 0.5, 0.75, 1].map(l => <polygon key={l} points={labels.map((_, i) => { const a = (Math.PI*2*i)/labels.length - Math.PI/2; const r = radius*l; return `${center+r*Math.cos(a)},${center+r*Math.sin(a)}`; }).join(' ')} fill="none" stroke="#e5e7eb" strokeWidth="1" />)}
                     {labels.map((_, i) => { const a = (Math.PI*2*i)/labels.length - Math.PI/2; return <line key={i} x1={center} y1={center} x2={center+radius*Math.cos(a)} y2={center+radius*Math.sin(a)} stroke="#e5e7eb" strokeWidth="1" />; })}
                     <polygon points={pts} fill="rgba(250, 204, 21, 0.5)" stroke="#FACC15" strokeWidth="2" />
                     <g transform={`translate(${center-12},${center-12})`}><DuckIcon size={24}/></g>
-                    {labels.map((l, i) => { 
-                        const a = (Math.PI*2*i)/labels.length - Math.PI/2; 
-                        const x = center + (radius+25)*Math.cos(a); 
-                        const y = center + (radius+25)*Math.sin(a); 
-                        return <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" className="text-[10px] fill-gray-500 font-bold">{l.split(' ')[0].substring(0,8)}</text>; 
-                    })}
+                    {labels.map((l, i) => { const a = (Math.PI*2*i)/labels.length - Math.PI/2; const x = center + (radius+25)*Math.cos(a); const y = center + (radius+25)*Math.sin(a); return <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" className="text-[10px] fill-gray-500 font-bold">{l.split(' ')[0].substring(0,8)}</text>; })}
                 </svg>
             );
         };
 
         const ScatterChart = ({ data }) => {
-            const w = 300, h = 200, pad = 25, MAX_R = 20, MAX_W = 200;
-            const getX = r => pad + ((r||0)/MAX_R)*(w-2*pad);
-            const getY = wg => h - pad - ((wg||0)/MAX_W)*(h-2*pad);
+            const w = 300, h = 200, pad = 25;
+            // Echelle dynamique en fonction du poids max enregistré
+            const maxW = Math.max(...data.map(d => d.weight), 10) * 1.2;
+            
+            // X est réparti chronologiquement de gauche (plus ancien) à droite (plus récent)
+            const getX = i => pad + (i / Math.max(data.length - 1, 1)) * (w - 2 * pad);
+            const getY = wg => h - pad - (wg / maxW) * (h - 2 * pad);
+            
             return (
                 <div className="w-full overflow-hidden bg-gray-50 rounded-lg border border-gray-100 relative">
                     <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto">
-                        {[0,50,100,150,200].map(wg => <line key={wg} x1={pad} y1={getY(wg)} x2={w-pad} y2={getY(wg)} stroke="#e5e7eb" strokeWidth="1" />)}
-                        <text x={w/2} y={h-5} textAnchor="middle" fontSize="10" fill="#9ca3af">Reps</text>
-                        <text x={5} y={h/2} textAnchor="middle" fontSize="10" fill="#9ca3af" transform={`rotate(-90, 5, ${h/2})`}>Kg</text>
-                        {data.length > 1 && <polyline points={data.map(d => `${getX(d.reps)},${getY(d.weight)}`).join(' ')} fill="none" stroke="#FACC15" strokeWidth="2" />}
-                        {data.map((d, i) => <circle key={i} cx={getX(d.reps)} cy={getY(d.weight)} r="4" fill="#FACC15" stroke="black" strokeWidth="1"><title>{d.weight}kg x {d.reps}</title></circle>)}
+                        {[0, maxW/2, maxW].map((wg, i) => (
+                            <g key={i}>
+                                <line x1={pad} y1={getY(wg)} x2={w-pad} y2={getY(wg)} stroke="#e5e7eb" strokeWidth="1" />
+                                <text x={pad-2} y={getY(wg)+3} textAnchor="end" fontSize="8" fill="#9ca3af">{Math.round(wg)}</text>
+                            </g>
+                        ))}
+                        <text x={w/2} y={h-5} textAnchor="middle" fontSize="10" fill="#9ca3af">Temps (Évolution des séances)</text>
+                        {data.length > 1 && <polyline points={data.map((d, i) => `${getX(i)},${getY(d.weight)}`).join(' ')} fill="none" stroke="#FACC15" strokeWidth="2" />}
+                        {data.map((d, i) => (
+                            <circle key={i} cx={getX(i)} cy={getY(d.weight)} r="4" fill="#FACC15" stroke="black" strokeWidth="1">
+                                <title>{d.weight}kg x {d.reps} ({new Date(d.date?.seconds*1000).toLocaleDateString()})</title>
+                            </circle>
+                        ))}
                     </svg>
                 </div>
             );
         };
 
+        const IntensityChart = ({ validations }) => {
+            const w = 300, h = 150, pad = 20;
+            // Sort validations by date
+            const sorted = [...validations].sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)).filter(v => v.intensity);
+            if (sorted.length < 2) return <div className="text-center text-sm text-gray-400 py-4">Pas assez de données</div>;
+            
+            const getX = i => pad + (i / (sorted.length - 1)) * (w - 2*pad);
+            const getY = val => h - pad - ((val - 1) / 9) * (h - 2*pad); // Int 1 to 10
+            const pts = sorted.map((v, i) => `${getX(i)},${getY(v.intensity)}`).join(' ');
+
+            return (
+                <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto bg-gray-50 rounded-lg border border-gray-100">
+                    {[1, 5, 10].map(y => <line key={y} x1={pad} y1={getY(y)} x2={w-pad} y2={getY(y)} stroke="#e5e7eb" strokeWidth="1"/>)}
+                    <text x={5} y={getY(10)+5} fontSize="8" fill="#9ca3af">10</text>
+                    <text x={5} y={getY(1)+5} fontSize="8" fill="#9ca3af">1</text>
+                    <polyline points={pts} fill="none" stroke="#EF4444" strokeWidth="2" />
+                    {sorted.map((v, i) => <circle key={i} cx={getX(i)} cy={getY(v.intensity)} r="3" fill="#EF4444"><title>Intensité: {v.intensity}</title></circle>)}
+                </svg>
+            );
+        };
+
         const PBSection = ({ currentUser, isDaddyDuck, db, notify }) => {
             const [ex, setEx] = useState(EXERCISES_LIST[0]);
-            const [w, setW] = useState('');
-            const [r, setR] = useState('');
-            const [d, setD] = useState(new Date().toISOString().split('T')[0]);
-            const [hist, setHist] = useState([]);
             const [spider, setSpider] = useState({});
             const [users, setUsers] = useState([]);
             const [target, setTarget] = useState(currentUser);
+            const [allVals, setAllVals] = useState([]);
+            const [allPbs, setAllPbs] = useState([]);
 
             useEffect(() => {
                 if (isDaddyDuck) {
                     window.firebaseModules.getDocs(window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_users'))).then(s => {
-                        const l = s.docs.map(doc => doc.data().name);
-                        setUsers(l);
-                        if (l.length && target === 'Daddy Duck') setTarget(l[0]);
+                        const l = s.docs.map(doc => doc.data().name); setUsers(l); if (l.length && target === 'Daddy Duck') setTarget(l[0]);
                     });
                 } else setTarget(currentUser);
             }, [isDaddyDuck]);
 
             useEffect(() => {
                 if (!target) return;
-                const q = window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_pbs'), window.firebaseModules.where('userLowName', '==', target.toLowerCase()));
-                return window.firebaseModules.onSnapshot(q, (s) => {
-                    const all = s.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    const byEx = {};
-                    EXERCISES_LIST.forEach(e => byEx[e] = 0);
-                    const grp = {};
-                    all.forEach(p => { if (!grp[p.exercise]) grp[p.exercise] = []; grp[p.exercise].push(p); });
-                    Object.keys(grp).forEach(k => {
-                        const sorted = grp[k].sort((a,b) => (b.date?.seconds || 0) - (a.date?.seconds || 0));
-                        if(sorted.length) byEx[k] = sorted[0].weight * (sorted[0].reps || 1);
-                    });
+                const unsubPB = window.firebaseModules.onSnapshot(window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_pbs'), window.firebaseModules.where('userLowName', '==', target.toLowerCase())), (s) => {
+                    const all = s.docs.map(d => d.data());
+                    setAllPbs(all);
+                    
+                    // Calcul pour le Spider Chart
+                    const byEx = {}; EXERCISES_LIST.forEach(e => byEx[e] = 0);
+                    all.forEach(p => { const s = p.weight * (p.reps || 1); if(s > byEx[p.exercise]) byEx[p.exercise] = s; });
                     setSpider(byEx);
-                    const filt = all.filter(i => i.exercise === ex);
-                    filt.sort((a,b) => (a.date?.seconds || 0) - (b.date?.seconds || 0));
-                    setHist(filt);
                 });
-            }, [ex, target]);
+                const unsubVal = window.firebaseModules.onSnapshot(window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_validations'), window.firebaseModules.where('userLowName', '==', target.toLowerCase())), (s) => {
+                    setAllVals(s.docs.map(d => d.data()).filter(v => v.type === 'workout'));
+                });
+                return () => { unsubPB(); unsubVal(); };
+            }, [target]);
 
-            const add = async (e) => {
-                e.preventDefault();
-                if (!w || !r || !d) return;
-                try {
-                    await window.firebaseModules.addDoc(window.firebaseModules.collection(db, 'duck_pbs'), {
-                        userLowName: currentUser.toLowerCase(), exercise: ex, weight: parseFloat(w), reps: parseInt(r), recordDate: d, date: window.firebaseModules.serverTimestamp()
-                    });
-                    setW(''); setR('');
-                    notify("Ajouté !", "success");
-                } catch(e) { notify("Erreur.", "error"); }
-            };
-
+            // Filtrage des données du graphe chronologique en fonction de l'exercice selectionné
+            const hist = allPbs.filter(i => i.exercise === ex).sort((a,b) => (a.date?.seconds || 0) - (b.date?.seconds || 0));
             const currentMax = hist.length > 0 ? Math.max(...hist.map(h => h.weight)) : 0;
 
             return (
@@ -639,64 +617,83 @@
                         <h2 className="text-2xl font-bold flex gap-2"><Icons.TrendingUp className="text-yellow-500"/> Stats</h2>
                         {isDaddyDuck && <select className="border rounded p-2" value={target} onChange={e => setTarget(e.target.value)}>{users.map(u => <option key={u} value={u}>{u}</option>)}</select>}
                     </div>
-                    <div className="bg-white p-4 rounded-2xl border"><h3 className="text-center font-bold mb-4">{target} mooved weight</h3><div className="flex justify-center"><SpiderChart data={spider} /></div></div>
-                    {!isDaddyDuck && (
-                        <div className="bg-white p-4 rounded-2xl border space-y-4">
-                            <h3>Ajouter une perf</h3>
-                            <select className="w-full border p-3 rounded" value={ex} onChange={e => setEx(e.target.value)}>{EXERCISES_LIST.map(o => <option key={o} value={o}>{o}</option>)}</select>
-                            <form onSubmit={add} className="space-y-3">
-                                <div className="flex gap-2"><input type="number" step="0.5" placeholder="Poids" className="w-1/2 border p-3 rounded" value={w} onChange={e => setW(e.target.value)} /><input type="number" placeholder="Reps" className="w-1/2 border p-3 rounded" value={r} onChange={e => setR(e.target.value)} /></div>
-                                <input type="date" className="w-full border p-3 rounded" value={d} onChange={e => setD(e.target.value)} />
-                                <button className="w-full bg-black text-white p-3 rounded font-bold">Ajouter</button>
-                            </form>
-                        </div>
-                    )}
-                    {isDaddyDuck && <div className="bg-white p-4 rounded-xl"><select className="w-full border p-2 rounded" value={ex} onChange={e => setEx(e.target.value)}>{EXERCISES_LIST.map(o => <option key={o} value={o}>{o}</option>)}</select></div>}
-                    {hist.length > 0 ? (
-                        <div className="bg-white p-4 rounded-2xl border">
-                            <div className="flex justify-between mb-4"><h3 className="font-bold">{ex}</h3><span className="text-2xl font-black text-yellow-500">Max: {currentMax}kg</span></div>
-                            <ScatterChart data={hist} />
-                        </div>
-                    ) : <div className="text-center py-8 text-gray-400 bg-white rounded-2xl border border-dashed">Aucune donnée</div>}
+                    <div className="bg-white p-4 rounded-2xl border shadow-sm"><h3 className="text-center font-bold mb-4 text-sm text-gray-600">Forces globales (Poids x Reps)</h3><div className="flex justify-center"><SpiderChart data={spider} /></div></div>
+                    <div className="bg-white p-4 rounded-2xl border shadow-sm"><h3 className="font-bold mb-4 text-sm text-gray-600 flex items-center gap-2"><Icons.Flame size={16} className="text-red-500"/> Historique d'intensité</h3><IntensityChart validations={allVals}/></div>
+                    
+                    {/* NOUVEAU GRAPHIQUE DES POIDS MOOVED OVER TIME */}
+                    <div className="bg-white p-4 rounded-2xl border shadow-sm">
+                        <h3 className="font-bold mb-4 text-sm text-gray-600 flex items-center gap-2"><Icons.Dumbbell size={16} className="text-blue-500"/> Évolution par exercice</h3>
+                        <select className="w-full border p-2 rounded mb-4 text-sm bg-gray-50 font-bold" value={ex} onChange={e => setEx(e.target.value)}>
+                            {EXERCISES_LIST.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                        
+                        {hist.length > 0 ? (
+                            <div>
+                                <div className="flex justify-between items-end mb-2">
+                                    <span className="font-bold text-gray-800">{ex}</span>
+                                    <span className="text-lg font-black text-yellow-500">Max: {currentMax}kg</span>
+                                </div>
+                                <ScatterChart data={hist} />
+                            </div>
+                        ) : (
+                            <div className="text-center py-6 text-gray-400 text-sm border-2 border-dashed rounded-xl">Aucune donnée pour cet exercice</div>
+                        )}
+                    </div>
                 </div>
             );
         };
 
-        const Leaderboard = ({ db, isDaddyDuck, notify }) => {
-            const [users, setUsers] = useState([]);
-            const [allPhotos, setAllPhotos] = useState([]);
-
+        const CardioTab = ({ db, isDaddyDuck, notify, users }) => {
+            const [photos, setPhotos] = useState([]);
             useEffect(() => {
-                const q = window.firebaseModules.collection(db, 'duck_users');
-                return window.firebaseModules.onSnapshot(q, (s) => {
-                    const u = s.docs.map(d => d.data());
-                    u.sort((a,b) => (b.totalWorkouts || 0) - (a.totalWorkouts || 0));
-                    setUsers(u);
-                }, (err) => {
-                    if (notify && err.code === 'permission-denied') notify("Erreur accès classement (règles?)", "error");
+                const q = window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_validations'), window.firebaseModules.where('status', '==', 'approved'));
+                const unsub = window.firebaseModules.onSnapshot(q, snap => {
+                    const cardioPhotos = snap.docs.map(d => ({id:d.id,...d.data()})).filter(p => p.type === 'cardio').sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                    setPhotos(cardioPhotos);
                 });
-            }, [db, notify]);
-
-            useEffect(() => {
-                const q = window.firebaseModules.query(
-                    window.firebaseModules.collection(db, 'duck_validations'),
-                    window.firebaseModules.where('status', '==', 'approved')
-                    // Removed server-side ordering to prevent index errors
-                );
-                return window.firebaseModules.onSnapshot(q, (s) => {
-                    const photos = s.docs.map(d => ({id: d.id, ...d.data()}));
-                    // Sort client-side
-                    photos.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-                    setAllPhotos(photos);
-                }, err => console.error("Mosaic error", err));
+                return () => unsub();
             }, [db]);
 
-            const reset = async (name) => {
-                try {
-                    await window.firebaseModules.updateDoc(window.firebaseModules.doc(db, 'duck_users', name.toLowerCase()), { points: 0, weeklyWorkouts: 0 });
-                    notify("Reset effectué.", "warning");
-                } catch(e) {}
-            };
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold px-2 text-blue-600 flex items-center gap-2"><Icons.Activity/> Cardio Zone</h2>
+                    <div className="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm space-y-4">
+                        <h3 className="font-bold text-sm text-blue-800">Progression vers le Duck Point (4 séances)</h3>
+                        {users.map(u => (
+                            <div key={u.name} className="flex items-center gap-3">
+                                <DuckAvatar id={u.avatarId} size={28}/>
+                                <div className="flex-1">
+                                    <div className="flex justify-between text-xs font-bold mb-1"><span className="text-gray-700">{u.name}</span><span className="text-blue-600">{u.cardioCount || 0}/4</span></div>
+                                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden"><div className="bg-blue-500 h-2 transition-all duration-500" style={{width: `${((u.cardioCount || 0)/4)*100}%`}}></div></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="space-y-4">
+                        <h3 className="font-bold px-2 text-blue-800">Galerie Cardio</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                            {photos.map(p => (
+                                <div key={p.id} className="relative aspect-square bg-blue-50 rounded-xl overflow-hidden border border-blue-100 shadow-sm">
+                                    <img src={p.photoBase64} className="w-full h-full object-cover"/>
+                                    <div className="absolute bottom-0 left-0 right-0 bg-blue-900/60 p-1 text-white text-[10px] font-bold text-center">{p.userName}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Leaderboard = ({ db, isDaddyDuck, notify, users, setPhotoOfMonth }) => {
+            const [allPhotos, setAllPhotos] = useState([]);
+            useEffect(() => {
+                const q = window.firebaseModules.query(window.firebaseModules.collection(db, 'duck_validations'), window.firebaseModules.where('status', '==', 'approved'));
+                return window.firebaseModules.onSnapshot(q, (s) => {
+                    const photos = s.docs.map(d => ({id: d.id, ...d.data()})).filter(p => p.type !== 'cardio');
+                    photos.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                    setAllPhotos(photos);
+                });
+            }, [db]);
             return (
                 <div className="space-y-8">
                     <div className="space-y-4">
@@ -705,19 +702,25 @@
                             {users.map((u, i) => (
                                 <div key={u.name} className="flex justify-between p-4 border-b">
                                     <div className="flex items-center gap-4"><span className="font-bold w-6 text-center">{i+1}</span><div className="flex items-center gap-3"><DuckAvatar id={u.avatarId} size={32}/><div><p className="font-bold">{u.name}</p><p className="text-xs text-gray-500">{u.totalWorkouts||0} séances</p></div></div></div>
-                                    <div className="flex items-center gap-3"><span className="font-bold text-yellow-600 flex gap-1">{u.points} <DuckIcon size={14}/></span>{isDaddyDuck && <button onClick={() => reset(u.name)} className="text-xs text-red-500 border px-2 py-1 rounded">Reset</button>}</div>
+                                    <div className="flex items-center gap-3"><span className="font-bold text-yellow-600 flex gap-1">{u.points} <DuckIcon size={14}/></span></div>
                                 </div>
                             ))}
                         </div>
                     </div>
-
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold px-2">Galerie</h2>
+                        <h2 className="text-2xl font-bold px-2">Galerie du mois</h2>
                         <div className="grid grid-cols-3 gap-1">
                             {allPhotos.map(p => (
                                 <div key={p.id} className="relative aspect-square bg-gray-100 overflow-hidden group">
                                     <img src={p.photoBase64} alt={p.userName} className="w-full h-full object-cover" loading="lazy" />
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-end p-1 transition-opacity duration-200">
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col justify-between p-1 transition-opacity">
+                                        <div className="flex justify-end">
+                                            {isDaddyDuck && (
+                                                <button onClick={() => setPhotoOfMonth(p)} className="text-yellow-300 hover:text-yellow-500 bg-black/50 rounded-full p-1 m-1" title="Définir comme Coin-graphie">
+                                                    <Icons.Star size={16}/>
+                                                </button>
+                                            )}
+                                        </div>
                                         <span className="text-white text-xs font-bold truncate w-full">{p.userName}</span>
                                     </div>
                                 </div>
@@ -738,203 +741,243 @@
             const [activeTab, setTab] = useState('feed');
             const [notif, setNotif] = useState(null);
             const [showAvatar, setShowAvatar] = useState(false);
+            
+            const [allUsers, setAllUsers] = useState([]);
             const [rewards, setRewards] = useState([]);
             const [validations, setValidations] = useState([]);
             const [deliveries, setDeliveries] = useState([]);
             const [purchases, setPurchases] = useState([]);
+            const [permissionError, setPermissionError] = useState(false);
+
+            // Upload states
             const [photo, setPhoto] = useState(null);
             const [isCompressing, setComp] = useState(false);
-            const [processingId, setProcessingId] = useState(null); 
-            const fileInputRef = useRef(null);
-            const [permissionError, setPermissionError] = useState(false);
+            const [workoutType, setWorkoutType] = useState('workout'); // 'workout' or 'cardio'
+            const [intensity, setIntensity] = useState(5);
+            const [fundChecked, setFundChecked] = useState({}); // { 'Squat': {w:'',r:''} }
 
             const isDaddy = username.toLowerCase() === 'daddy duck';
 
-            const waitForFirebase = () => new Promise(resolve => {
-                if (window.firebaseReady) resolve();
-                else window.addEventListener('firebase-ready', resolve);
-            });
+            const waitForFirebase = () => new Promise(resolve => { if (window.firebaseReady) resolve(); else window.addEventListener('firebase-ready', resolve); });
 
             useEffect(() => {
                 const start = async () => {
-                    const timer = setTimeout(() => {
-                        const el = document.getElementById('loading-fallback');
-                        if (el) {
-                            el.innerHTML = "<span>⚠️ Erreur de connexion</span><span style='font-size:0.8rem'>Vérifiez votre internet ou rechargez</span>";
-                            el.style.backgroundColor = "#FECACA"; // Rouge clair
-                            el.style.color = "#B91C1C";
-                        }
-                    }, 8000);
-                    
-                    await waitForFirebase();
-                    clearTimeout(timer);
-                    hideFallback();
-
+                    await waitForFirebase(); hideFallback();
                     const mods = window.firebaseModules;
                     try {
                         if (!mods.getApps().length) mods.initializeApp(firebaseConfig);
                         services.current = { auth: mods.getAuth(), db: mods.getFirestore(), mods };
                         setFb(true);
                         mods.onAuthStateChanged(services.current.auth, (u) => setUser(u));
-                        
-                        if (!services.current.auth.currentUser) {
-                             await mods.signInAnonymously(services.current.auth);
-                        }
-                    } catch(e) { 
-                        console.error(e); 
-                        let userMsg = e.message;
-                        if (e.code === 'auth/configuration-not-found' || e.message.includes('configuration-not-found')) {
-                             userMsg = "L'authentification est mal configurée. Avez-vous activé 'Anonyme' dans la console Firebase (Authentication > Sign-in method) ?";
-                        } else if (e.code === 'auth/admin-restricted-operation' || e.message.includes('admin-restricted-operation')) {
-                             userMsg = "Opération restreinte. Vérifiez que l'authentification 'Anonyme' est bien ACTIVÉE dans la console Firebase.";
-                        }
-                        setError("Erreur d'initialisation : " + userMsg); 
-                    }
-                };
-                start();
+                        if (!services.current.auth.currentUser) await mods.signInAnonymously(services.current.auth);
+                    } catch(e) { setError("Erreur d'initialisation"); }
+                }; start();
             }, []);
 
             const notify = (msg, type = 'info') => { setNotif({ msg, type }); setTimeout(() => setNotif(null), 4000); };
             const db = services.current.db;
             const mods = services.current.mods;
 
-            // --- DATA LISTENERS ---
+            // Load Users list
+            useEffect(() => {
+                if(!fbLoaded) return;
+                const unsub = mods.onSnapshot(mods.collection(db, 'duck_users'), s => {
+                    const u = s.docs.map(d=>d.data()).sort((a,b) => (b.totalWorkouts || 0) - (a.totalWorkouts || 0));
+                    setAllUsers(u);
+                });
+                return () => unsub();
+            }, [fbLoaded, db]);
+
+            // User Profile Listener
             useEffect(() => {
                 if (!user || !username || !fbLoaded) return;
                 const userRef = mods.doc(db, 'duck_users', username.toLowerCase());
                 const unsubUser = mods.onSnapshot(userRef, (s) => {
                     if (s.exists()) {
-                        const d = s.data();
-                        setUserData(d);
+                        const d = s.data(); setUserData(d);
                         if (!d.avatarId && !isDaddy) setShowAvatar(true);
-                        if (d.lastWorkout) {
-                             const lastDate = new Date(d.lastWorkout.seconds * 1000);
-                             const now = new Date();
-                             
-                             // 1. Reset points if inactive > 14 days
-                             const diffDays = Math.ceil(Math.abs(now - lastDate) / (1000 * 60 * 60 * 24));
-                             if (diffDays > 14 && d.points > 0) { notify("Semaine ratée = 0 pts !", "error"); mods.updateDoc(userRef, { points: 0 }); }
-                             
-                             // 2. Reset weekly workouts logic (Lundi à 00:00)
-                             const startOfWeek = new Date(now);
-                             const day = startOfWeek.getDay(); // 0 (Sun) -> 6 (Sat)
-                             const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-                             startOfWeek.setDate(diff);
-                             startOfWeek.setHours(0, 0, 0, 0);
-                             
-                             if (d.weeklyWorkouts > 0 && lastDate < startOfWeek) {
-                                 mods.updateDoc(userRef, { weeklyWorkouts: 0 });
-                             }
+                        
+                        // Penalty Logic (1 Week)
+                        const now = new Date();
+                        const startOfWeek = new Date(now);
+                        const day = startOfWeek.getDay();
+                        startOfWeek.setDate(startOfWeek.getDate() - day + (day === 0 ? -6 : 1));
+                        startOfWeek.setHours(0, 0, 0, 0);
+
+                        const startOfLastWeek = new Date(startOfWeek);
+                        startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+                        let refDate = null;
+                        if (d.lastWorkout) refDate = new Date(d.lastWorkout.seconds * 1000);
+                        else if (d.joinedAt) refDate = new Date(d.joinedAt.seconds * 1000);
+
+                        if (refDate) {
+                            if (refDate < startOfLastWeek && d.points > 0) {
+                                notify("1 semaine sans sport = 0 pts !", "error");
+                                mods.updateDoc(userRef, { points: 0 });
+                            }
+                            if (d.weeklyWorkouts > 0 && refDate < startOfWeek) {
+                                mods.updateDoc(userRef, { weeklyWorkouts: 0 });
+                            }
                         }
                     } else {
-                        mods.setDoc(userRef, { name: username, points: 0, totalWorkouts: 0, weeklyWorkouts: 0, joinedAt: mods.serverTimestamp(), avatarId: 'classic' });
+                        mods.setDoc(userRef, { name: username, points: 0, totalWorkouts: 0, weeklyWorkouts: 0, cardioCount: 0, joinedAt: mods.serverTimestamp(), avatarId: 'classic' });
                         setShowAvatar(true);
                     }
                 }, (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
                 const qP = mods.query(mods.collection(db, 'duck_purchases'), mods.where('userLowName', '==', username.toLowerCase()), mods.where('status', '==', 'pending'));
-                const unsubP = mods.onSnapshot(qP, (s) => setPurchases(s.docs.map(d => ({id:d.id, ...d.data()}))), (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
+                const unsubP = mods.onSnapshot(qP, (s) => setPurchases(s.docs.map(d => ({id:d.id, ...d.data()}))));
                 return () => { unsubUser(); unsubP(); };
             }, [user, username, fbLoaded]);
 
+            // Admin & Public Listeners
             useEffect(() => {
                 if (!fbLoaded || !user) return;
-                const unsubR = mods.onSnapshot(mods.collection(db, 'duck_rewards'), (s) => { setRewards(s.docs.map(d => ({id:d.id, ...d.data()}))); }, (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
+                const unsubR = mods.onSnapshot(mods.collection(db, 'duck_rewards'), (s) => setRewards(s.docs.map(d => ({id:d.id, ...d.data()}))));
                 let unsubV = () => {}, unsubD = () => {};
                 if (isDaddy) {
-                    const qV = mods.query(mods.collection(db, 'duck_validations'), mods.where('status', '==', 'pending'));
-                    unsubV = mods.onSnapshot(qV, (s) => setValidations(s.docs.map(d => ({id:d.id, ...d.data()}))), (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
-                    const qD = mods.query(mods.collection(db, 'duck_purchases'), mods.where('status', '==', 'pending'));
-                    unsubD = mods.onSnapshot(qD, (s) => setDeliveries(s.docs.map(d => ({id:d.id, ...d.data()}))), (err) => { if(err.code === 'permission-denied') setPermissionError(true); });
+                    unsubV = mods.onSnapshot(mods.query(mods.collection(db, 'duck_validations'), mods.where('status', '==', 'pending')), (s) => setValidations(s.docs.map(d => ({id:d.id, ...d.data()}))));
+                    unsubD = mods.onSnapshot(mods.query(mods.collection(db, 'duck_purchases'), mods.where('status', '==', 'pending')), (s) => setDeliveries(s.docs.map(d => ({id:d.id, ...d.data()}))));
                 }
                 return () => { unsubR(); unsubV(); unsubD(); };
             }, [fbLoaded, isDaddy, user]);
 
-            const handleLogin = (e) => {
-                e.preventDefault();
-                let n = e.target.name.value.trim().replace(/[/#\.\[\]\*\`]/g, '');
-                if (n) { if (n.toLowerCase() === 'daddy duck') setTab('admin'); setUsername(n); }
-            };
-            const handleFile = async (e) => { if (e.target.files[0]) { setComp(true); try { const b64 = await compressImage(e.target.files[0]); setPhoto(b64); } catch(err) { notify("Erreur image", "error"); } setComp(false); } };
+            const handleLogin = (e) => { e.preventDefault(); let n = e.target.name.value.trim().replace(/[/#\.\[\]\*\`]/g, ''); if (n) { if (n.toLowerCase() === 'daddy duck') setTab('admin'); setUsername(n); } };
+            const handleFile = async (e) => { if (e.target.files[0]) { setComp(true); try { setPhoto(await compressImage(e.target.files[0])); } catch(err) { notify("Erreur image", "error"); } setComp(false); } };
+            
             const sendPhoto = async () => {
                 if (!userData || !photo) return;
-                if (userData.weeklyWorkouts >= 3) return notify("Max hebdo atteint !", "warning");
-                try { await mods.addDoc(mods.collection(db, 'duck_validations'), { userName: username, userLowName: username.toLowerCase(), photoBase64: photo, status: 'pending', timestamp: mods.serverTimestamp(), userAvatar: userData.avatarId }); setPhoto(null); notify("Envoyé !", "success"); } catch(e) { notify("Erreur envoi (Permissions?)", "error"); }
+                try { 
+                    const exercisesList = [];
+                    Object.keys(fundChecked).forEach(k => { if(fundChecked[k].w && fundChecked[k].r) exercisesList.push({ name: k, weight: fundChecked[k].w, reps: fundChecked[k].r }); });
+
+                    await mods.addDoc(mods.collection(db, 'duck_validations'), { 
+                        userName: username, userLowName: username.toLowerCase(), 
+                        photoBase64: photo, status: 'pending', type: workoutType,
+                        intensity: workoutType === 'workout' ? intensity : null,
+                        exercises: workoutType === 'workout' ? exercisesList : [],
+                        dateStr: new Date().toISOString().split('T')[0], // Submission date
+                        timestamp: mods.serverTimestamp(), userAvatar: userData.avatarId 
+                    }); 
+                    setPhoto(null); setFundChecked({}); setIntensity(5); notify("Envoyé pour validation !", "success"); 
+                } catch(e) { notify("Erreur envoi", "error"); }
             };
-            const buy = async (item) => {
-                if (userData.points < item.cost) return notify("Pas assez de canards", "error");
-                try { const ref = mods.doc(db, 'duck_users', username.toLowerCase()); await mods.updateDoc(ref, { points: mods.increment(-item.cost) }); await mods.addDoc(mods.collection(db, 'duck_purchases'), { userName: username, userLowName: username.toLowerCase(), itemName: item.name, itemCost: item.cost, status: 'pending', timestamp: mods.serverTimestamp() }); notify("Acheté !", "success"); } catch(e) { notify("Erreur", "error"); }
+
+            const adminPoints = async (userLowName, amt) => {
+                await mods.updateDoc(mods.doc(db, 'duck_users', userLowName), { points: mods.increment(amt) });
+                notify(`Points modifiés (${amt})`, "success");
             };
+
+            const setAsPhotoOfMonth = async (post) => {
+                try {
+                    await mods.setDoc(mods.doc(db, 'duck_misc', 'photo_of_month'), { photoBase64: post.photoBase64, userName: post.userName });
+                    await mods.updateDoc(mods.doc(db, 'duck_users', post.userLowName), { points: mods.increment(1) });
+                    notify("Photo du mois définie ! (+1 pt)", "success");
+                } catch(e) { notify("Erreur", "error"); }
+            };
+
             const validate = async (val, status) => {
                 try {
                     await mods.updateDoc(mods.doc(db, 'duck_validations', val.id), { status });
-                    if (status === 'approved') { const uRef = mods.doc(db, 'duck_users', val.userLowName); await mods.updateDoc(uRef, { points: mods.increment(1), weeklyWorkouts: mods.increment(1), totalWorkouts: mods.increment(1), lastWorkout: mods.serverTimestamp() }); notify("Validé !", "success"); } else notify("Refusé.", "info");
+                    if (status === 'approved') { 
+                        const uRef = mods.doc(db, 'duck_users', val.userLowName); 
+                        if (val.type === 'cardio') {
+                            const uSnap = await mods.getDoc(uRef);
+                            let newCount = (uSnap.data().cardioCount || 0) + 1;
+                            if (newCount >= 4) {
+                                await mods.updateDoc(uRef, { cardioCount: 0, points: mods.increment(1) });
+                                await mods.addDoc(mods.collection(db, 'duck_feed_events'), { type: 'cardio_master', userName: val.userName, userAvatar: val.userAvatar, timestamp: mods.serverTimestamp() });
+                                notify("Cardio validé! 4/4 (+1 pt)", "success");
+                            } else {
+                                await mods.updateDoc(uRef, { cardioCount: newCount });
+                                notify("Cardio validé!", "success");
+                            }
+                        } else {
+                            await mods.updateDoc(uRef, { points: mods.increment(1), weeklyWorkouts: mods.increment(1), totalWorkouts: mods.increment(1), lastWorkout: mods.serverTimestamp() }); 
+                            if (val.exercises && val.exercises.length > 0) {
+                                for (let ex of val.exercises) {
+                                    await mods.addDoc(mods.collection(db, 'duck_pbs'), { userLowName: val.userLowName, exercise: ex.name, weight: parseFloat(ex.weight), reps: parseInt(ex.reps), recordDate: val.dateStr, date: val.timestamp });
+                                }
+                            }
+                            notify("Séance validée !", "success"); 
+                        }
+                    } else notify("Refusé.", "info");
                 } catch(e) { notify("Erreur", "error"); }
             };
-            const deliver = async (p) => { try { await mods.updateDoc(mods.doc(db, 'duck_purchases', p.id), { status: 'delivered' }); notify("Livré !", "success"); } catch(e) { notify("Erreur", "error"); } };
-            const changeAvatar = async (k) => { try { await mods.updateDoc(mods.doc(db, 'duck_users', username.toLowerCase()), { avatarId: k }); setShowAvatar(false); notify("Avatar changé !", "success"); } catch(e) { notify("Erreur", "error"); } };
-            const handleRejectWorkout = async (val) => { try { await mods.updateDoc(mods.doc(db, 'duck_validations', val.id), { status: 'rejected' }); notify("Refusé.", "info"); } catch(e) { notify("Erreur", "error"); } };
-            const handleValidateWorkout = (val) => validate(val, 'approved');
-            const handleDeliverItem = deliver;
-            const handleSelectAvatar = changeAvatar;
+
+            const buy = async (item) => { if (userData.points < item.cost) return notify("Pas assez de canards", "error"); await mods.updateDoc(mods.doc(db, 'duck_users', username.toLowerCase()), { points: mods.increment(-item.cost) }); await mods.addDoc(mods.collection(db, 'duck_purchases'), { userName: username, userLowName: username.toLowerCase(), itemName: item.name, itemCost: item.cost, status: 'pending', timestamp: mods.serverTimestamp() }); notify("Acheté !", "success"); };
+            const changeAvatar = async (k) => { await mods.updateDoc(mods.doc(db, 'duck_users', username.toLowerCase()), { avatarId: k }); setShowAvatar(false); notify("Avatar changé !", "success"); };
 
             if (error) return <div className="min-h-screen bg-red-50 flex items-center justify-center p-4 text-red-600 font-bold text-center">{error}</div>;
             if (!fbLoaded) return <div className="min-h-screen bg-yellow-50 flex items-center justify-center font-bold text-yellow-600 animate-pulse">Chargement...</div>;
-
-            if (!username) {
-                return (
-                    <div className="min-h-screen bg-yellow-400 flex flex-col items-center justify-center p-4">
-                        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
-                            <div className="flex justify-center mb-4"><DuckIcon size={64}/></div>
-                            <h1 className="text-3xl font-bold text-gray-800 mb-6">Duck Training</h1>
-                            <div className="bg-yellow-50 p-4 rounded-xl text-left text-sm text-yellow-900 mb-6 space-y-2 border border-yellow-200"><h3 className="font-bold text-center mb-2">🦆 Les Règles</h3><ul className="list-disc list-inside"><li>Photo = <strong>+1 Canard</strong>.</li><li>Max <strong>3</strong> / semaine.</li><li className="text-red-600 font-bold">Semaine ratée = 0 pts !</li></ul></div>
-                            <form onSubmit={handleLogin} className="space-y-4"><input name="name" className="w-full p-4 border-2 border-yellow-200 rounded-xl" placeholder="Ton Prénom" required /><button className={`w-full py-4 rounded-xl font-bold transition ${!user ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`} disabled={!user}>{!user ? 'Connexion...' : 'Entrer'}</button></form>
-                        </div>
-                    </div>
-                );
-            }
-
-            // Safety check for auth before rendering authenticated views
-            if (!user) return <div className="min-h-screen bg-yellow-50 flex items-center justify-center font-bold text-yellow-600 animate-pulse">Reconnexion...</div>;
+            if (!username) return (
+                <div className="min-h-screen bg-yellow-400 flex flex-col items-center justify-center p-4"><div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center"><div className="flex justify-center mb-4"><DuckIcon size={64}/></div><h1 className="text-3xl font-bold text-gray-800 mb-6">Duck Training</h1>
+                <div className="bg-yellow-50 p-4 rounded-xl text-left text-sm text-yellow-900 mb-6 space-y-2 border border-yellow-200"><h3 className="font-bold text-center mb-2">🦆 Les Règles</h3><ul className="list-disc list-inside"><li>1 Muscu = <strong>+1 Canard</strong>.</li><li>4 Cardio = <strong>+1 Canard</strong>.</li><li className="text-red-600 font-bold">1 semaine sans sport = 0 pts !</li></ul></div>
+                <form onSubmit={handleLogin} className="space-y-4"><input name="name" className="w-full p-4 border-2 border-yellow-200 rounded-xl" placeholder="Ton Prénom" required /><button className={`w-full py-4 rounded-xl font-bold transition ${!user ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white'}`} disabled={!user}>Entrer</button></form></div></div>
+            );
 
             return (
                 <div className="min-h-screen bg-gray-50 pb-24 relative font-sans">
-                    {permissionError && (
-                        <div className="firebase-error-banner">
-                            <strong>Erreur d'accès à la base de données !</strong>
-                            <span>Allez sur la <a href="https://console.firebase.google.com/" target="_blank">Console Firebase</a> > Firestore Database > Règles, et collez :</span>
-                            <code>allow read, write: if true;</code>
-                        </div>
-                    )}
-                    
+                    {permissionError && <div className="firebase-error-banner"><strong>Erreur d'accès à la base de données !</strong><span>Console Firebase > Firestore > Règles : <code>allow read, write: if true;</code></span></div>}
                     {notif && <div className={`fixed top-4 left-4 right-4 z-50 p-4 rounded-xl shadow-lg text-white font-bold flex items-center gap-3 animate-bounce-in ${notif.type==='error'?'bg-red-500':notif.type==='success'?'bg-green-600':'bg-blue-600'}`}>{notif.type==='error'?<Icons.AlertTriangle/>:<Icons.Info/>} {notif.msg}</div>}
                     {showAvatar && !isDaddy && <div className="fixed inset-0 bg-yellow-400 z-50 flex flex-col items-center justify-center p-4 overflow-y-auto"><div className="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-lg text-center my-auto"><h2 className="text-2xl font-black text-gray-800 mb-4">Choisis ton canard</h2><div className="grid grid-cols-3 gap-4">{Object.entries(DUCK_VARIANTS).map(([k, v]) => <button key={k} onClick={() => changeAvatar(k)} className="flex flex-col items-center p-2 border rounded hover:bg-yellow-50"><DuckAvatar id={k} size={50}/><span className="text-xs font-bold mt-1">{v.name}</span></button>)}</div></div></div>}
                     
-                    <div className="bg-yellow-400 p-6 rounded-b-3xl shadow-lg sticky top-0 z-10">
-                        <div className="flex justify-between items-center mb-4">
-                            <div className="flex items-center gap-3"><div className="bg-white p-1 rounded-full shadow-sm cursor-pointer" onClick={() => !isDaddy && setShowAvatar(true)}><DuckAvatar id={userData?.avatarId} size={40}/></div><span className="font-bold text-lg flex items-center gap-2">{username} {!isDaddy && <Icons.Edit2 size={14}/>}</span></div>
-                            <button onClick={() => setUsername('')}><Icons.LogOut size={20}/></button>
-                        </div>
-                        {!isDaddy && userData && <div><div className="flex justify-between items-end text-white"><div><p className="text-yellow-900 font-medium opacity-80">Mes Points</p><div className="flex items-center gap-2 text-4xl font-black text-black"><DuckIcon size={32}/> {userData.points}</div></div><div className="text-right text-yellow-900"><p className="text-sm font-bold">{userData.weeklyWorkouts}/3 sem.</p></div></div>{purchases.length > 0 && <div className="mt-4 bg-yellow-500/20 p-2 rounded text-xs font-bold text-yellow-900 flex gap-2 overflow-x-auto">{purchases.map(p => <span key={p.id} className="bg-white px-2 py-1 rounded shadow-sm shrink-0">{p.itemName}</span>)}</div>}</div>}
+                    <div className="bg-yellow-400 p-6 rounded-b-3xl shadow-lg sticky top-0 z-30">
+                        <div className="flex justify-between items-center mb-4"><div className="flex items-center gap-3"><div className="bg-white p-1 rounded-full shadow-sm cursor-pointer" onClick={() => !isDaddy && setShowAvatar(true)}><DuckAvatar id={userData?.avatarId} size={40}/></div><span className="font-bold text-lg flex items-center gap-2">{username} {!isDaddy && <Icons.Edit2 size={14}/>}</span></div><button onClick={() => setUsername('')}><Icons.LogOut size={20}/></button></div>
+                        {!isDaddy && userData && <div><div className="flex justify-between items-end text-white"><div><p className="text-yellow-900 font-medium opacity-80">Mes Points</p><div className="flex items-center gap-2 text-4xl font-black text-black"><DuckIcon size={32}/> {userData.points}</div></div></div>{purchases.length > 0 && <div className="mt-4 bg-yellow-500/20 p-2 rounded text-xs font-bold text-yellow-900 flex gap-2 overflow-x-auto">{purchases.map(p => <span key={p.id} className="bg-white px-2 py-1 rounded shadow-sm shrink-0">{p.itemName}</span>)}</div>}</div>}
                     </div>
 
-                    <div className="p-4 max-w-md mx-auto space-y-6 mt-4">
-                        {isDaddy && activeTab === 'admin' && <div className="space-y-6"><div><h3 className="font-bold text-lg text-gray-700 mb-2">Livraisons ({deliveries.length})</h3>{deliveries.map(p => <div key={p.id} className="bg-blue-50 p-3 rounded-xl border border-blue-100 flex justify-between items-center mb-2"><div><p className="font-bold">{p.userName}</p><p className="text-sm">{p.itemName}</p></div><button onClick={() => deliver(p)} className="bg-blue-600 text-white px-3 py-1 rounded shadow">Livré</button></div>)}</div><hr/><div><h3 className="font-bold text-lg text-gray-700 mb-2">Validations ({validations.length})</h3>{validations.map(v => <div key={v.id} className="bg-white p-3 rounded-xl shadow-sm border mb-4"><div className="flex justify-between mb-2"><span className="font-bold">{v.userName}</span><span className="text-xs text-gray-400">{v.timestamp?.toDate().toLocaleTimeString()}</span></div><img src={v.photoBase64} className="rounded mb-2 max-h-48 object-contain bg-black w-full"/><div className="flex gap-2"><button onClick={() => handleRejectWorkout(v)} disabled={!!processingId} className="flex-1 border border-red-200 text-red-600 py-2 rounded font-bold">Refuser</button><button onClick={() => handleValidateWorkout(v)} disabled={!!processingId} className="flex-1 bg-yellow-400 py-2 rounded font-bold">Valider</button></div></div>)}</div></div>}
-                        
-                        {/* NOUVEL ONGLET FEED (ACCUEIL) */}
-                        {activeTab === 'feed' && <FeedSection db={db} isDaddyDuck={isDaddy} notify={notify} username={username} />}
+                    <TopBanners db={db} isDaddyDuck={isDaddy} notify={notify} />
 
-                        {/* NOUVEL ONGLET PROGRAMME */}
+                    <div className="p-4 max-w-md mx-auto space-y-6 mt-2">
+                        {isDaddy && activeTab === 'admin' && <div className="space-y-6">
+                            <div><h3 className="font-bold text-lg mb-2">Points manuels</h3><div className="bg-white rounded-xl shadow-sm border p-2">{allUsers.map(u=><div key={u.name} className="flex justify-between items-center p-2 border-b"><span className="font-bold">{u.name} ({u.points})</span><div className="flex gap-2"><button onClick={()=>adminPoints(u.name.toLowerCase(), -1)} className="bg-red-100 text-red-600 px-3 rounded font-bold">-1</button><button onClick={()=>adminPoints(u.name.toLowerCase(), 1)} className="bg-green-100 text-green-700 px-3 rounded font-bold">+1</button></div></div>)}</div></div>
+                            <div><h3 className="font-bold text-lg mb-2">Validations ({validations.length})</h3>{validations.map(v => <div key={v.id} className={`p-3 rounded-xl shadow-sm border mb-4 ${v.type==='cardio'?'bg-blue-50 border-blue-200':'bg-white'}`}><div className="flex justify-between mb-2"><span className="font-bold text-lg">{v.userName} {v.type==='cardio'&&<Icons.HeartPulse className="inline text-blue-500" size={16}/>}</span><span className="text-xs text-gray-400">{v.timestamp?.toDate().toLocaleTimeString()}</span></div><img src={v.photoBase64} className="rounded mb-2 max-h-48 object-contain bg-black w-full"/>
+                            {v.type==='workout' && v.intensity && <p className="text-xs font-bold text-red-600 mb-2">Intensité: {v.intensity}/10</p>}
+                            {v.type==='workout' && v.exercises && v.exercises.map((ex,i)=><p key={i} className="text-xs">💪 {ex.name}: {ex.weight}kg x {ex.reps}</p>)}
+                            <div className="flex gap-2 mt-2"><button onClick={() => validate(v, 'rejected')} className="flex-1 border border-red-200 text-red-600 py-2 rounded font-bold">Refuser</button><button onClick={() => validate(v, 'approved')} className="flex-1 bg-yellow-400 py-2 rounded font-bold">Valider</button></div></div>)}</div>
+                            <div><h3 className="font-bold text-lg mb-2">Livraisons ({deliveries.length})</h3>{deliveries.map(p => <div key={p.id} className="bg-blue-50 p-3 rounded-xl flex justify-between items-center mb-2"><div><p className="font-bold">{p.userName}</p><p className="text-sm">{p.itemName}</p></div><button onClick={() => deliver(p)} className="bg-blue-600 text-white px-3 py-1 rounded">Livré</button></div>)}</div>
+                        </div>}
+                        
+                        {activeTab === 'feed' && <FeedSection db={db} isDaddyDuck={isDaddy} notify={notify} username={username} setPhotoOfMonth={setAsPhotoOfMonth} />}
                         {activeTab === 'program' && <ProgramSection db={db} isDaddyDuck={isDaddy} notify={notify} />}
 
-                        {!isDaddy && activeTab === 'home' && <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center"><h2 className="text-xl font-bold mb-4">Gagner un canard</h2>{!photo ? <div className={`border-2 border-dashed rounded-xl p-8 relative ${isCompressing ? 'bg-gray-50' : 'cursor-pointer'}`}><input type="file" accept="image/*" className="absolute inset-0 opacity-0 w-full h-full" onChange={handleFile} disabled={isCompressing} />{isCompressing ? <Icons.Loader className="animate-spin mx-auto"/> : <Icons.Camera className="mx-auto text-gray-400" size={32}/>}<p className="mt-2 text-sm font-bold text-gray-500">{isCompressing ? "Compression..." : "Prends ta photo"}</p></div> : <div className="space-y-4"><div className="relative rounded overflow-hidden bg-black"><img src={photo} className="w-full h-48 object-contain"/><button onClick={() => setPhoto(null)} className="absolute top-2 right-2 bg-white/80 p-1 rounded-full text-red-500"><Icons.Trash2/></button></div><button onClick={sendPhoto} className="w-full bg-yellow-400 font-bold py-3 rounded-xl shadow-md">Envoyer</button></div>}</div>}
+                        {!isDaddy && activeTab === 'home' && <div className="space-y-4">
+                            <div className="flex rounded-xl overflow-hidden shadow-sm border">
+                                <button className={`flex-1 py-3 font-bold ${workoutType==='workout'?'bg-yellow-400 text-black':'bg-white text-gray-400'}`} onClick={()=>setWorkoutType('workout')}>Muscu</button>
+                                <button className={`flex-1 py-3 font-bold ${workoutType==='cardio'?'bg-blue-500 text-white':'bg-white text-gray-400'}`} onClick={()=>setWorkoutType('cardio')}>Cardio</button>
+                            </div>
+                            <div className={`p-6 rounded-2xl shadow-sm border text-center ${workoutType==='workout'?'bg-white':'bg-blue-50 border-blue-100'}`}>
+                                <h2 className="text-xl font-bold mb-4">{workoutType==='workout' ? 'Valider une séance' : 'Valider un cardio'}</h2>
+                                {!photo ? <div className="border-2 border-dashed rounded-xl p-8 relative cursor-pointer bg-white"><input type="file" accept="image/*" className="absolute inset-0 opacity-0 w-full h-full" onChange={handleFile}/><Icons.Camera className="mx-auto text-gray-400" size={32}/><p className="mt-2 text-sm font-bold text-gray-500">Prends ta photo</p></div> 
+                                : <div className="space-y-4"><div className="relative rounded overflow-hidden bg-black"><img src={photo} className="w-full h-48 object-contain"/><button onClick={() => setPhoto(null)} className="absolute top-2 right-2 bg-white/80 p-1 rounded-full text-red-500"><Icons.Trash2/></button></div>
+                                    {workoutType === 'workout' && (
+                                        <div className="space-y-4 text-left mt-4 border-t pt-4">
+                                            <div><label className="font-bold text-sm flex justify-between">Intensité <span className="text-red-500">{intensity}/10</span></label><input type="range" min="1" max="10" value={intensity} onChange={e=>setIntensity(e.target.value)} className="w-full mt-2" /></div>
+                                            <div><label className="font-bold text-sm mb-2 block">As-tu fait ces exos ?</label>
+                                                {FUNDAMENTALS_LIST.map(ex => (
+                                                    <div key={ex} className="mb-2 bg-gray-50 p-2 rounded border">
+                                                        <label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={!!fundChecked[ex]} onChange={e => { if(!e.target.checked) { let copy={...fundChecked}; delete copy[ex]; setFundChecked(copy); } else setFundChecked({...fundChecked, [ex]:{w:'',r:''}}); }}/> {ex}</label>
+                                                        {fundChecked[ex] && <div className="flex gap-2 mt-2"><input type="number" placeholder="Kg" className="w-1/2 p-2 border rounded text-sm" value={fundChecked[ex].w} onChange={e=>setFundChecked({...fundChecked, [ex]:{...fundChecked[ex], w:e.target.value}})}/><input type="number" placeholder="Reps" className="w-1/2 p-2 border rounded text-sm" value={fundChecked[ex].r} onChange={e=>setFundChecked({...fundChecked, [ex]:{...fundChecked[ex], r:e.target.value}})}/></div>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <button onClick={sendPhoto} className={`w-full font-bold py-3 rounded-xl shadow-md ${workoutType==='workout'?'bg-yellow-400 text-black':'bg-blue-600 text-white'}`}>Envoyer</button>
+                                </div>}
+                            </div>
+                        </div>}
+
+                        {activeTab === 'cardio' && <CardioTab db={db} isDaddyDuck={isDaddy} notify={notify} users={allUsers} />}
                         {activeTab === 'shop' && <ShopSection rewards={rewards} userData={userData} handleBuy={buy} isDaddyDuck={isDaddy} db={db} notify={notify} />}
                         {activeTab === 'pbs' && <PBSection currentUser={username} isDaddyDuck={isDaddy} db={db} notify={notify} />}
-                        {(activeTab === 'leader' || (isDaddy && activeTab !== 'admin')) && <Leaderboard db={db} isDaddyDuck={isDaddy} notify={notify} />}
+                        {activeTab === 'leader' && <Leaderboard db={db} isDaddyDuck={isDaddy} notify={notify} users={allUsers} setPhotoOfMonth={setAsPhotoOfMonth} />}
                     </div>
 
-                    <div className="fixed bottom-0 w-full bg-white border-t p-2 flex justify-around pb-6 z-20">
+                    <div className="fixed bottom-0 w-full bg-white border-t p-2 flex justify-around items-center pb-6 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                         {isDaddy ? <><NavButton active={activeTab==='admin'} onClick={()=>setTab('admin')} icon={<Icons.CheckCircle/>} label="Admin"/><NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Feed"/><NavButton active={activeTab==='program'} onClick={()=>setTab('program')} icon={<Icons.FileText/>} label="Prog"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Stats"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></> : 
-                        <><NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Accueil"/><NavButton active={activeTab==='program'} onClick={()=>setTab('program')} icon={<Icons.FileText/>} label="Prog"/><NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Progrès"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></>}
+                        <><NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Accueil"/><NavButton active={activeTab==='program'} onClick={()=>setTab('program')} icon={<Icons.FileText/>} label="Prog"/><NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/><NavButton active={activeTab==='cardio'} onClick={()=>setTab('cardio')} icon={<Icons.HeartPulse/>} label="Cardio"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Progrès"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></>}
                     </div>
                 </div>
             );
