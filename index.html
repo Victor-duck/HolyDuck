@@ -722,10 +722,15 @@
                 });
             }, [db]);
 
-            const sportCounts = {};
-            allPhotos.forEach(p => { const s = p.sport || 'Muscu'; sportCounts[s] = (sportCounts[s] || 0) + 1; });
-            const sortedSports = Object.entries(sportCounts).sort((a,b) => b[1] - a[1]);
-            const maxSportCount = sortedSports.length > 0 ? sortedSports[0][1] : 1;
+            const sportsData = {};
+            allPhotos.forEach(p => { 
+                const s = p.sport || 'Muscu'; 
+                const uName = p.userName || 'Anonyme';
+                if (!sportsData[s]) sportsData[s] = { total: 0, users: {} };
+                sportsData[s].total += 1;
+                sportsData[s].users[uName] = (sportsData[s].users[uName] || 0) + 1;
+            });
+            const sortedSports = Object.entries(sportsData).sort((a,b) => b[1].total - a[1].total);
 
             return (
                 <div className="space-y-8">
@@ -743,22 +748,33 @@
 
                     <div className="space-y-4">
                         <h2 className="text-2xl font-bold px-2 flex items-center gap-2">🔥 Bilan des Sports</h2>
-                        <div className="bg-white rounded-2xl border p-4 space-y-3 shadow-sm">
+                        <div className="bg-white rounded-2xl border p-4 space-y-4 shadow-sm">
                             {sortedSports.length === 0 && <p className="text-center text-gray-400 text-sm py-4">Aucune donnée.</p>}
-                            {sortedSports.map(([sportName, count]) => (
-                                <div key={sportName} className="flex items-center gap-3">
-                                    <span className="text-2xl w-8 text-center">{SPORT_EMOJIS[sportName] || '🏅'}</span>
-                                    <div className="flex-1">
-                                        <div className="flex justify-between text-xs font-bold mb-1 text-gray-700">
-                                            <span>{sportName}</span>
-                                            <span className="text-yellow-600">{count} séance{count > 1 ? 's' : ''}</span>
-                                        </div>
-                                        <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                                            <div className="bg-yellow-400 h-2.5 rounded-full transition-all duration-1000" style={{ width: `${(count / maxSportCount) * 100}%` }}></div>
+                            {sortedSports.map(([sportName, data]) => {
+                                const sortedUsers = Object.entries(data.users).sort((a,b) => b[1] - a[1]);
+                                const maxUserCount = sortedUsers.length > 0 ? sortedUsers[0][1] : 1;
+                                return (
+                                    <div key={sportName} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
+                                        <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-3">
+                                            <span className="text-2xl">{SPORT_EMOJIS[sportName] || '🏅'}</span>
+                                            <span>{sportName} <span className="text-xs text-gray-400 font-normal ml-1">({data.total} au total)</span></span>
+                                        </h3>
+                                        <div className="space-y-2 pl-2 sm:pl-8">
+                                            {sortedUsers.map(([uName, count]) => (
+                                                <div key={uName}>
+                                                    <div className="flex justify-between text-xs font-bold mb-1 text-gray-600">
+                                                        <span>{uName}</span>
+                                                        <span className="text-yellow-600">{count} séance{count > 1 ? 's' : ''}</span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                                        <div className="bg-yellow-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${(count / maxUserCount) * 100}%` }}></div>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
 
