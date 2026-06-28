@@ -315,10 +315,13 @@
             );
         };
 
-        const ProgramSection = ({ db, isDaddyDuck, notify }) => {
+        const FeedSection = ({ db, isDaddyDuck, notify, username, setPhotoOfMonth, userData }) => {
+            const { onSnapshot, doc, query, collection, where, setDoc, serverTimestamp, deleteDoc, updateDoc, arrayUnion } = window.firebaseModules;
+
             const [posts, setPosts] = useState([]);
             const [events, setEvents] = useState([]);
             const [moods, setMoods] = useState([]);
+            const [msg, setMsg] = useState("");
             const [editing, setEditing] = useState(false);
             const [newMsg, setNewMsg] = useState("");
             const [commentInputs, setCommentInputs] = useState({});
