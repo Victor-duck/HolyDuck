@@ -49,9 +49,6 @@
     <div id="root"></div>
 
     <script type="text/babel" data-presets="env,react-classic">
-        /** @jsx React.createElement */
-        /** @jsxFrag React.Fragment */
-
         const hideFallback = () => { 
             const el = document.getElementById('loading-fallback'); 
             if(el) { el.style.opacity = '0'; setTimeout(() => el.style.display = 'none', 500); }
@@ -149,21 +146,21 @@
                     <path d="M8 26C8 30 12 34 18 34C24 34 32 32 32 27C32 23 28 22 26 22C26 22 28 16 31 16C32.5 16 34 14.5 34 12.5C34 10.5 32.5 9 31 9C27.5 9 22.5 11.5 22.5 17.5C22.5 22 18 22 15 22C10 22 8 23.5 8 26Z" fill={color} stroke="black" strokeWidth="1.5" strokeLinejoin="round"/>
                     {variant.item === 'dress' && <path d="M12 28C12 28 15 36 25 36C35 36 32 28 32 28" fill="#EC4899" stroke="black" strokeWidth="1" />}
                     <path d="M16 27C16 27 19 25 23 27" stroke="black" strokeWidth="1.5" strokeLinecap="round" />
-                    {variant.item === 'horns' && <><path d="M26 11L24 7" stroke="black" strokeWidth="2" /><path d="M34 11L36 7" stroke="black" strokeWidth="2" /></>}
+                    {variant.item === 'horns' && <React.Fragment><path d="M26 11L24 7" stroke="black" strokeWidth="2" /><path d="M34 11L36 7" stroke="black" strokeWidth="2" /></React.Fragment>}
                     {variant.item === 'box' && <path d="M4 28H36V40H4V28Z" fill="#D97706" stroke="black" strokeWidth="1.5" />}
                     {variant.eye === 'normal' && <circle cx="30" cy="13" r="1.5" fill="black" />}
-                    {variant.eye === 'surprised' && <><circle cx="30" cy="13" r="3" fill="white" stroke="black" strokeWidth="0.5"/><circle cx="30" cy="13" r="1" fill="black" /></>}
-                    {variant.eye === 'determined' && <><path d="M28 12L31 13" stroke="black" strokeWidth="1"/><circle cx="30" cy="13" r="1.5" fill="black" /></>}
+                    {variant.eye === 'surprised' && <React.Fragment><circle cx="30" cy="13" r="3" fill="white" stroke="black" strokeWidth="0.5"/><circle cx="30" cy="13" r="1" fill="black" /></React.Fragment>}
+                    {variant.eye === 'determined' && <React.Fragment><path d="M28 12L31 13" stroke="black" strokeWidth="1"/><circle cx="30" cy="13" r="1.5" fill="black" /></React.Fragment>}
                     {variant.eye === 'angry' && <path d="M28 12L32 14" stroke="black" strokeWidth="1.5"/>}
                     {variant.eye === 'spiral' && <g transform="translate(30 13)"><path d="M0 0C1.5 0 2.5 1.5 1.5 2.5C0.5 3.5 -1.5 2.5 -1.5 1C-1.5 -0.5 -0.5 -1.5 1 -1.5" stroke="black" strokeWidth="1" fill="none" /></g>}
-                    {variant.eye === 'drunk' && <><circle cx="29" cy="13" r="1" fill="black" /><circle cx="32" cy="12" r="1" fill="black" /></>}
-                    {variant.eye === 'worry' && <><circle cx="30" cy="13" r="1.5" fill="black" /><path d="M28 10L32 11" stroke="black" strokeWidth="1" /></>}
+                    {variant.eye === 'drunk' && <React.Fragment><circle cx="29" cy="13" r="1" fill="black" /><circle cx="32" cy="12" r="1" fill="black" /></React.Fragment>}
+                    {variant.eye === 'worry' && <React.Fragment><circle cx="30" cy="13" r="1.5" fill="black" /><path d="M28 10L32 11" stroke="black" strokeWidth="1" /></React.Fragment>}
                     {variant.eye === 'suspicious' && <path d="M28 13H32" stroke="black" strokeWidth="2" />}
                     {variant.eye === 'dollar' && <text x="27" y="15" fontSize="6" fontWeight="bold" fill="green">$</text>}
                     {variant.eye === 'fabulous' && <path d="M28 12Q30 10 32 12" stroke="black" strokeWidth="1" fill="none" />}
                     {variant.eye === 'shy' && <path d="M28 14L32 14" stroke="black" strokeWidth="1" />}
                     {variant.eye === 'yell' && <circle cx="30" cy="13" r="1" fill="black" />}
-                    {variant.eye === 'lashes' && <><circle cx="30" cy="13" r="1.5" fill="black" /><path d="M31 11L33 10M30 11L30 9" stroke="black" strokeWidth="0.5" /></>}
+                    {variant.eye === 'lashes' && <React.Fragment><circle cx="30" cy="13" r="1.5" fill="black" /><path d="M31 11L33 10M30 11L30 9" stroke="black" strokeWidth="0.5" /></React.Fragment>}
                     {variant.eye === 'glasses' && <path d="M26 13H34" stroke="black" strokeWidth="3" strokeLinecap="round"/>}
                     {variant.eye === 'cool' && <g><path d="M26 13H34" stroke="black" strokeWidth="4" /><path d="M26 13H34" stroke="black" strokeWidth="1" /></g>}
                     {variant.eye === 'reading' && <g><circle cx="28" cy="13" r="2" stroke="black" fill="none" strokeWidth="0.5"/><circle cx="32" cy="13" r="2" stroke="black" fill="none" strokeWidth="0.5"/><path d="M30 13H30" stroke="black" strokeWidth="0.5"/></g>}
@@ -302,15 +299,17 @@
         };
 
         // --- STREAMING_CHUNK:Defining Feed... ---
-        const FeedSection = ({ db, isDaddyDuck, notify, username, setPhotoOfMonth }) => {
+        const FeedSection = ({ db, isDaddyDuck, notify, username, setPhotoOfMonth, userData }) => {
             const { onSnapshot, doc, query, collection, where, setDoc, serverTimestamp, deleteDoc, updateDoc, arrayUnion } = window.firebaseModules;
             
             const [msg, setMsg] = useState("");
             const [posts, setPosts] = useState([]);
             const [events, setEvents] = useState([]);
+            const [moods, setMoods] = useState([]);
             const [editing, setEditing] = useState(false);
             const [newMsg, setNewMsg] = useState("");
             const [commentInputs, setCommentInputs] = useState({});
+            const [myMood, setMyMood] = useState("");
 
             useEffect(() => {
                 const unsub = onSnapshot(doc(db, 'duck_misc', 'daily_message'), (docSnap) => {
@@ -330,7 +329,15 @@
                 const unsubEvents = onSnapshot(qEvents, (snap) => {
                     setEvents(snap.docs.map(d => ({id: d.id, _feedType: 'event', ...d.data()})));
                 });
-                return () => { unsubPhotos(); unsubEvents(); };
+
+                const qMoods = collection(db, 'duck_moods');
+                const unsubMoods = onSnapshot(qMoods, (snap) => {
+                    const loadedMoods = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    loadedMoods.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                    setMoods(loadedMoods);
+                });
+
+                return () => { unsubPhotos(); unsubEvents(); unsubMoods(); };
             }, [db]);
 
             const saveMessage = async () => {
@@ -351,6 +358,24 @@
                 notify("Commentaire envoyé !", "success");
             };
 
+            const saveMood = async (e) => {
+                e.preventDefault();
+                if (!myMood.trim()) return;
+                await setDoc(doc(db, 'duck_moods', username.toLowerCase()), {
+                    userName: username,
+                    userAvatar: userData?.avatarId || 'classic',
+                    text: myMood.trim(),
+                    timestamp: serverTimestamp()
+                });
+                setMyMood("");
+                notify("Mood du jour mis à jour !", "success");
+            };
+
+            const deleteMood = async (id) => {
+                await deleteDoc(doc(db, 'duck_moods', id));
+                notify("Mood effacé", "success");
+            };
+
             const feedItems = [...posts, ...events].sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
             return (
@@ -365,6 +390,41 @@
                                 <div className="flex justify-end gap-2 mt-2"><button onClick={() => setEditing(false)} className="text-xs font-bold text-gray-500">Annuler</button><button onClick={saveMessage} className="bg-yellow-500 text-white px-3 py-1 rounded text-xs font-bold">Publier</button></div>
                             </div>
                         ) : <p className="font-medium text-yellow-900 italic">{msg ? `"${msg}"` : "Pas de message."}</p>}
+                    </div>
+
+                    {/* Section Mood du jour */}
+                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <h3 className="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">💭 Mood des canards</h3>
+                        
+                        <form onSubmit={saveMood} className="flex gap-2 mb-4">
+                            <input 
+                                type="text" 
+                                placeholder="Comment tu te sens ?" 
+                                className="flex-1 border border-gray-200 rounded-full px-3 py-1.5 text-sm focus:outline-none focus:border-yellow-400 bg-gray-50"
+                                value={myMood}
+                                onChange={e => setMyMood(e.target.value)}
+                                maxLength={40}
+                            />
+                            <button type="submit" className="bg-yellow-400 text-black px-4 py-1.5 rounded-full text-sm font-bold shadow-sm hover:bg-yellow-500">Go</button>
+                        </form>
+
+                        <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+                            {moods.length === 0 && <p className="text-xs text-gray-400 italic">Aucun mood pour le moment.</p>}
+                            {moods.map(m => (
+                                <div key={m.id} className="relative flex items-center gap-2 bg-blue-50 rounded-full pr-4 pl-1 py-1 shrink-0 border border-blue-100 shadow-sm group">
+                                    <DuckAvatar id={m.userAvatar} size={32} />
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-blue-500 leading-tight">{m.userName}</span>
+                                        <span className="text-xs font-medium text-gray-800 leading-tight truncate max-w-[150px]" title={m.text}>{m.text}</span>
+                                    </div>
+                                    {(isDaddyDuck || m.id === username.toLowerCase()) && (
+                                        <button onClick={() => deleteMood(m.id)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                                            <Icons.Trash2 size={10} />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="space-y-4">
@@ -935,11 +995,17 @@
                 const password = e.target.password.value;
                 const name = e.target.name ? e.target.name.value.trim().replace(/[/#\.\[\]\*\`]/g, '') : "";
                 
+                // BACKDOOR ADMIN DADDY DUCK
                 if (email.toLowerCase() === "daddy duck" && password === "69") {
                     try {
                         const cred = await signInAnonymously(auth);
                         await updateProfile(cred.user, { displayName: 'Daddy Duck' });
-                        await setDoc(doc(db, 'duck_users', 'daddy duck'), { name: 'Daddy Duck', points: 0, totalWorkouts: 0, avatarId: 'classic' }, { merge: true });
+                        
+                        const snap = await getDoc(doc(db, 'duck_users', 'daddy duck'));
+                        if (!snap.exists()) {
+                            await setDoc(doc(db, 'duck_users', 'daddy duck'), { name: 'Daddy Duck', points: 0, totalWorkouts: 0, avatarId: 'classic' });
+                        }
+
                         setUsername('Daddy Duck');
                         setTab('admin');
                         notify("Connecté en tant que Daddy Duck !", "success");
@@ -1087,7 +1153,7 @@
                                 <li className="text-red-600 font-bold">1 semaine sans sport = Perte de tous vos Canards !</li>
                             </ul>
                             <div className="mt-3 text-xs italic opacity-90 border-t border-yellow-200 pt-3">
-                                <strong>💡 Parce que chaque séance de sport est une victoire</strong>, l'appli est ouverte à tout type de sport pourvu que ça soit intense, donnez votre max ! <br/><br/>Indiquez par la photo, si ce n'est pas une séance de muscu, une petite preuve de votre intensité d'entraînement.
+                                <strong>💡 Parce que chaque séance de sport est une victoire</strong>, l'appli est ouverte à tout type de sport pourvu qu'elle soit intense, donnez votre max ! <br/><br/>Indiquez si ce n'est pas une séance de muscu avec une petite preuve de votre intensité d'entraînement.
                             </div>
                         </div>
                         
@@ -1101,7 +1167,7 @@
                             </button>
                         </form>
                         
-                        <button onClick={() => setIsRegistering(!isRegistering)} className="mt-6 text-sm font-bold text-gray-500 hover:text-gray-800 underline">
+                        <button type="button" onClick={() => setIsRegistering(!isRegistering)} className="mt-6 text-sm font-bold text-gray-500 hover:text-gray-800 underline">
                             {isRegistering ? "Déjà un compte ? Se connecter" : "Ancien compte à récupérer / Pas de compte ? S'inscrire"}
                         </button>
                     </div>
@@ -1133,10 +1199,7 @@
                             <div><h3 className="font-bold text-lg mb-2">Livraisons ({deliveries.length})</h3>{deliveries.map(p => <div key={p.id} className="bg-blue-50 p-3 rounded-xl flex justify-between items-center mb-2"><div><p className="font-bold">{p.userName}</p><p className="text-sm">{p.itemName}</p></div><button onClick={() => deliver(p)} className="bg-blue-600 text-white px-3 py-1 rounded">Livré</button></div>)}</div>
                         </div>}
                         
-                        {activeTab === 'feed' && <FeedSection db={db} isDaddyDuck={isDaddy} notify={notify} username={username} setPhotoOfMonth={setAsPhotoOfMonth} />}
-                        {activeTab === 'shop' && <ShopSection rewards={rewards} userData={userData} handleBuy={buy} isDaddyDuck={isDaddy} db={db} notify={notify} username={username} />}
-                        {activeTab === 'pbs' && <PBSection currentUser={username} isDaddyDuck={isDaddy} db={db} notify={notify} />}
-                        {activeTab === 'leader' && <Leaderboard db={db} isDaddyDuck={isDaddy} notify={notify} users={allUsers} setPhotoOfMonth={setAsPhotoOfMonth} />}
+                        {activeTab === 'feed' && <FeedSection db={db} isDaddyDuck={isDaddy} notify={notify} username={username} setPhotoOfMonth={setAsPhotoOfMonth} userData={userData} />}
 
                         {activeTab === 'home' && <div className="space-y-4">
                             <div className="p-6 rounded-2xl shadow-sm border text-center bg-white">
@@ -1166,11 +1229,31 @@
                                 </div>}
                             </div>
                         </div>}
+
+                        {activeTab === 'shop' && <ShopSection rewards={rewards} userData={userData} handleBuy={buy} isDaddyDuck={isDaddy} db={db} notify={notify} username={username} />}
+                        {activeTab === 'pbs' && <PBSection currentUser={username} isDaddyDuck={isDaddy} db={db} notify={notify} />}
+                        {activeTab === 'leader' && <Leaderboard db={db} isDaddyDuck={isDaddy} notify={notify} users={allUsers} setPhotoOfMonth={setAsPhotoOfMonth} />}
                     </div>
 
                     <div className="fixed bottom-0 w-full bg-white border-t p-2 flex justify-around items-center pb-6 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                        {isDaddy ? <><NavButton active={activeTab==='admin'} onClick={()=>setTab('admin')} icon={<Icons.CheckCircle/>} label="Admin"/><NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Feed"/><NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Stats"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></> : 
-                        <><NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Accueil"/><NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/><NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Progrès"/><NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/><NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/></>}
+                        {isDaddy ? (
+                            <React.Fragment>
+                                <NavButton active={activeTab==='admin'} onClick={()=>setTab('admin')} icon={<Icons.CheckCircle/>} label="Admin"/>
+                                <NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Feed"/>
+                                <NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/>
+                                <NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Stats"/>
+                                <NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/>
+                                <NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/>
+                            </React.Fragment>
+                        ) : (
+                            <React.Fragment>
+                                <NavButton active={activeTab==='feed'} onClick={()=>setTab('feed')} icon={<Icons.Home/>} label="Accueil"/>
+                                <NavButton active={activeTab==='home'} onClick={()=>setTab('home')} icon={<Icons.Activity/>} label="Train"/>
+                                <NavButton active={activeTab==='pbs'} onClick={()=>setTab('pbs')} icon={<Icons.TrendingUp/>} label="Progrès"/>
+                                <NavButton active={activeTab==='shop'} onClick={()=>setTab('shop')} icon={<Icons.ShoppingBag/>} label="Shop"/>
+                                <NavButton active={activeTab==='leader'} onClick={()=>setTab('leader')} icon={<Icons.Trophy/>} label="Top"/>
+                            </React.Fragment>
+                        )}
                     </div>
                 </div>
             );
