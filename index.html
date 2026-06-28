@@ -207,12 +207,25 @@
 
         const NavButton = ({ active, onClick, icon, label }) => <button onClick={onClick} className={`flex flex-col items-center justify-center flex-1 gap-1 ${active ? 'text-yellow-500' : 'text-gray-400'}`}>{React.cloneElement(icon, { size: 24, strokeWidth: active ? 2.5 : 2 })}<span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{label}</span></button>;
 
+        const ImageModal = ({ src, onClose }) => {
+            if (!src) return null;
+            return (
+                <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 cursor-zoom-out" onClick={onClose}>
+                    <button className="absolute top-4 right-4 text-white/50 hover:text-white p-2" onClick={onClose}>
+                        <Icons.Plus size={32} className="rotate-45" />
+                    </button>
+                    <img src={src} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" alt="Agrandissement" />
+                </div>
+            );
+        };
+
         // --- STREAMING_CHUNK:Defining UI Components... ---
         const TopBanners = ({ db, isDaddyDuck, notify }) => {
             const { doc, onSnapshot, query, collection, where, getDocs } = window.firebaseModules;
             const [duckOfMonth, setDuckOfMonth] = useState(null);
             const [isEndOfMonth, setIsEndOfMonth] = useState(false);
             const [photoOfMonth, setPhotoOfMonth] = useState(null);
+            const [expandedImage, setExpandedImage] = useState(null);
 
             useEffect(() => {
                 const checkDate = () => {
@@ -289,20 +302,20 @@
                             <Icons.Star className="text-yellow-300 drop-shadow-lg mt-2" size={24}/>
                         </div>
                         {photoOfMonth && (
-                            <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-lg overflow-hidden border-2 border-white/50 shadow-lg ml-2 shrink-0 bg-black">
+                            <div 
+                                className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-lg overflow-hidden border-2 border-white/50 shadow-lg ml-2 shrink-0 bg-black cursor-zoom-in"
+                                onClick={() => setExpandedImage(photoOfMonth.photoBase64)}
+                            >
                                 <img src={photoOfMonth.photoBase64} className="w-full h-full object-contain" />
                             </div>
                         )}
                     </div>
+                    {expandedImage && <ImageModal src={expandedImage} onClose={() => setExpandedImage(null)} />}
                 </div>
             );
         };
 
-        // --- STREAMING_CHUNK:Defining Feed... ---
-        const FeedSection = ({ db, isDaddyDuck, notify, username, setPhotoOfMonth, userData }) => {
-            const { onSnapshot, doc, query, collection, where, setDoc, serverTimestamp, deleteDoc, updateDoc, arrayUnion } = window.firebaseModules;
-            
-            const [msg, setMsg] = useState("");
+        const ProgramSection = ({ db, isDaddyDuck, notify }) => {
             const [posts, setPosts] = useState([]);
             const [events, setEvents] = useState([]);
             const [moods, setMoods] = useState([]);
@@ -774,6 +787,7 @@
         const Leaderboard = ({ db, isDaddyDuck, notify, users, setPhotoOfMonth }) => {
             const { query, collection, where, onSnapshot } = window.firebaseModules;
             const [allPhotos, setAllPhotos] = useState([]);
+            const [expandedImage, setExpandedImage] = useState(null);
 
             useEffect(() => {
                 const q = query(collection(db, 'duck_validations'), where('status', '==', 'approved'));
@@ -844,12 +858,12 @@
                         <h2 className="text-2xl font-bold px-2">Galerie du mois</h2>
                         <div className="grid grid-cols-3 gap-1">
                             {allPhotos.map(p => (
-                                <div key={p.id} className="relative aspect-square bg-gray-100 overflow-hidden group">
+                                <div key={p.id} className="relative aspect-square bg-gray-100 overflow-hidden group cursor-zoom-in" onClick={() => setExpandedImage(p.photoBase64)}>
                                     <img src={p.photoBase64} alt={p.userName} className="w-full h-full object-cover" loading="lazy" />
                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col justify-between p-1 transition-opacity">
                                         <div className="flex justify-end">
                                             {isDaddyDuck && (
-                                                <button onClick={() => setPhotoOfMonth(p)} className="text-yellow-300 hover:text-yellow-500 bg-black/50 rounded-full p-1 m-1" title="Définir comme Coin-graphie">
+                                                <button onClick={(e) => { e.stopPropagation(); setPhotoOfMonth(p); }} className="text-yellow-300 hover:text-yellow-500 bg-black/50 rounded-full p-1 m-1" title="Définir comme Coin-graphie">
                                                     <Icons.Star size={16}/>
                                                 </button>
                                             )}
@@ -860,6 +874,7 @@
                             ))}
                         </div>
                     </div>
+                    {expandedImage && <ImageModal src={expandedImage} onClose={() => setExpandedImage(null)} />}
                 </div>
             );
         };
