@@ -315,17 +315,18 @@
             );
         };
 
+        // --- STREAMING_CHUNK:Defining Feed and Shop... ---
         const FeedSection = ({ db, isDaddyDuck, notify, username, setPhotoOfMonth, userData }) => {
             const { onSnapshot, doc, query, collection, where, setDoc, serverTimestamp, deleteDoc, updateDoc, arrayUnion } = window.firebaseModules;
-
+            
+            const [msg, setMsg] = useState("");
             const [posts, setPosts] = useState([]);
             const [events, setEvents] = useState([]);
             const [moods, setMoods] = useState([]);
-            const [msg, setMsg] = useState("");
+            const [myMood, setMyMood] = useState("");
             const [editing, setEditing] = useState(false);
             const [newMsg, setNewMsg] = useState("");
             const [commentInputs, setCommentInputs] = useState({});
-            const [myMood, setMyMood] = useState("");
 
             useEffect(() => {
                 const unsub = onSnapshot(doc(db, 'duck_misc', 'daily_message'), (docSnap) => {
@@ -361,6 +362,24 @@
                 setEditing(false); notify("Mis à jour !", "success");
             };
 
+            const saveMood = async (e) => {
+                e.preventDefault();
+                if (!myMood.trim()) return;
+                await setDoc(doc(db, 'duck_moods', username.toLowerCase()), {
+                    userName: username,
+                    userAvatar: userData?.avatarId || 'classic',
+                    text: myMood.trim(),
+                    timestamp: serverTimestamp()
+                });
+                setMyMood("");
+                notify("Mood mis à jour !", "success");
+            };
+
+            const deleteMood = async (id) => {
+                await deleteDoc(doc(db, 'duck_moods', id));
+                notify("Mood effacé", "success");
+            };
+
             const deletePost = async (id, isEvent = false) => {
                 await deleteDoc(doc(db, isEvent ? 'duck_feed_events' : 'duck_validations', id));
                 notify("Supprimé", "success");
@@ -374,69 +393,59 @@
                 notify("Commentaire envoyé !", "success");
             };
 
-            const saveMood = async (e) => {
-                e.preventDefault();
-                if (!myMood.trim()) return;
-                await setDoc(doc(db, 'duck_moods', username.toLowerCase()), {
-                    userName: username,
-                    userAvatar: userData?.avatarId || 'classic',
-                    text: myMood.trim(),
-                    timestamp: serverTimestamp()
-                });
-                setMyMood("");
-                notify("Mood du jour mis à jour !", "success");
-            };
-
-            const deleteMood = async (id) => {
-                await deleteDoc(doc(db, 'duck_moods', id));
-                notify("Mood effacé", "success");
-            };
-
             const feedItems = [...posts, ...events].sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
             return (
                 <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-yellow-100 border-l-4 border-yellow-500 p-3 rounded-r shadow-sm relative flex flex-col">
-                            <div className="flex justify-between items-start mb-2"><h3 className="font-black text-yellow-800 uppercase tracking-wide text-[10px]">📢 Daily</h3>
-                                {isDaddyDuck && !editing && <button onClick={() => setEditing(true)} className="text-yellow-700 bg-yellow-200 p-1 rounded hover:bg-yellow-300"><Icons.Edit2 size={12}/></button>}
+                    <div className="flex flex-col gap-4">
+                        {/* Daily Coincoin */}
+                        <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-r-xl shadow-sm relative">
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-black text-yellow-800 uppercase tracking-wide text-sm">📢 Daily Coincoin</h3>
+                                {isDaddyDuck && !editing && <button onClick={() => setEditing(true)} className="text-yellow-700 bg-yellow-200 p-1.5 rounded hover:bg-yellow-300 transition-colors"><Icons.Edit2 size={16}/></button>}
                             </div>
                             {editing ? (
-                                <div className="mt-1 flex-1 flex flex-col">
-                                    <textarea className="w-full p-2 rounded border border-yellow-300 text-xs focus:outline-none flex-1 min-h-[60px]" value={newMsg} onChange={e => setNewMsg(e.target.value)} />
-                                    <div className="flex justify-end gap-2 mt-2"><button onClick={() => setEditing(false)} className="text-[10px] font-bold text-gray-500">Annuler</button><button onClick={saveMessage} className="bg-yellow-500 text-white px-2 py-1 rounded text-[10px] font-bold">OK</button></div>
+                                <div className="mt-2">
+                                    <textarea className="w-full p-3 rounded-lg border border-yellow-300 text-base focus:outline-none focus:ring-2 focus:ring-yellow-400" rows="3" value={newMsg} onChange={e => setNewMsg(e.target.value)} />
+                                    <div className="flex justify-end gap-3 mt-2">
+                                        <button onClick={() => setEditing(false)} className="text-sm font-bold text-gray-500 hover:text-gray-700">Annuler</button>
+                                        <button onClick={saveMessage} className="bg-yellow-500 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-yellow-600">Publier</button>
+                                    </div>
                                 </div>
-                            ) : <div className="flex-1 flex items-center justify-center"><p className="font-medium text-yellow-900 italic text-xs text-center">{msg ? `"${msg}"` : "Pas de message."}</p></div>}
+                            ) : <p className="font-medium text-yellow-900 italic text-base whitespace-pre-wrap">{msg ? `"${msg}"` : "Pas de message."}</p>}
                         </div>
 
                         {/* Section Mood du jour */}
-                        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex flex-col">
-                            <h3 className="font-black text-gray-800 uppercase text-[10px] tracking-wide mb-2 flex items-center gap-1">💭 Moods</h3>
+                        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+                            <h3 className="font-black text-gray-800 uppercase text-sm tracking-wide mb-3 flex items-center gap-2">💭 Mood des canards</h3>
                             
-                            <form onSubmit={saveMood} className="flex gap-1 mb-2">
+                            <form onSubmit={saveMood} className="flex gap-2 mb-4">
                                 <input 
                                     type="text" 
-                                    placeholder="Ton mood ?" 
-                                    className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-yellow-400 bg-gray-50 min-w-0"
+                                    placeholder="Comment tu te sens aujourd'hui ?" 
+                                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 bg-gray-50"
                                     value={myMood}
                                     onChange={e => setMyMood(e.target.value)}
-                                    maxLength={40}
+                                    maxLength={250}
                                 />
-                                <button type="submit" className="bg-yellow-400 text-black px-2 py-1 rounded-lg text-xs font-bold shadow-sm hover:bg-yellow-500">Go</button>
+                                <button type="submit" className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-200 transition-colors">Go</button>
                             </form>
 
-                            <div className="flex flex-col gap-1.5 overflow-y-auto max-h-24 hide-scrollbar">
-                                {moods.length === 0 && <p className="text-[10px] text-gray-400 italic">Aucun mood.</p>}
+                            <div className="flex flex-col gap-2 overflow-y-auto max-h-48 hide-scrollbar pr-1">
+                                {moods.length === 0 && <p className="text-sm text-gray-400 italic text-center py-2">Aucun mood pour le moment.</p>}
                                 {moods.map(m => (
-                                    <div key={m.id} className="relative flex items-center gap-2 bg-blue-50 rounded-lg px-2 py-1.5 border border-blue-100 shadow-sm group">
-                                        <DuckAvatar id={m.userAvatar} size={20} />
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="text-[9px] font-bold text-blue-500 leading-tight truncate">{m.userName}</span>
-                                            <span className="text-[10px] font-medium text-gray-800 leading-tight truncate" title={m.text}>{m.text}</span>
+                                    <div key={m.id} className="relative flex items-start gap-3 bg-blue-50/50 rounded-xl p-3 border border-blue-100/50 group transition-colors hover:bg-blue-50">
+                                        <div className="shrink-0 mt-0.5"><DuckAvatar id={m.userAvatar} size={32} /></div>
+                                        <div className="flex flex-col min-w-0 flex-1">
+                                            <div className="flex justify-between items-center mb-0.5">
+                                                <span className="text-sm font-black text-blue-600 leading-tight">{m.userName}</span>
+                                                <span className="text-xs text-gray-400 font-medium">{m.timestamp?.toDate ? m.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                                            </div>
+                                            <span className="text-base font-medium text-gray-800 leading-snug break-words whitespace-pre-wrap">{m.text}</span>
                                         </div>
                                         {(isDaddyDuck || m.id === username.toLowerCase()) && (
-                                            <button onClick={() => deleteMood(m.id)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                                                <Icons.Trash2 size={10} />
+                                            <button onClick={() => deleteMood(m.id)} className="absolute top-2 right-2 bg-red-100 text-red-500 rounded-md p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-200 shadow-sm">
+                                                <Icons.Trash2 size={14} />
                                             </button>
                                         )}
                                     </div>
@@ -1021,6 +1030,7 @@
                         const cred = await signInAnonymously(auth);
                         await updateProfile(cred.user, { displayName: 'Daddy Duck' });
                         
+                        // Verification avant création pour conserver les points !
                         const snap = await getDoc(doc(db, 'duck_users', 'daddy duck'));
                         if (!snap.exists()) {
                             await setDoc(doc(db, 'duck_users', 'daddy duck'), { name: 'Daddy Duck', points: 0, totalWorkouts: 0, avatarId: 'classic' });
@@ -1210,10 +1220,7 @@
                         {isDaddy && activeTab === 'admin' && <div className="space-y-6">
                             <div><h3 className="font-bold text-lg mb-2">Points manuels</h3><div className="bg-white rounded-xl shadow-sm border p-2">{allUsers.map((u, i)=><div key={u.id || i} className="flex justify-between items-center p-2 border-b"><span className="font-bold">{u.name} ({u.points})</span><div className="flex gap-2"><button onClick={()=>adminPoints(u.name.toLowerCase(), -1)} className="bg-red-100 text-red-600 px-3 rounded font-bold">-1</button><button onClick={()=>adminPoints(u.name.toLowerCase(), 1)} className="bg-green-100 text-green-700 px-3 rounded font-bold">+1</button></div></div>)}</div></div>
                             <div><h3 className="font-bold text-lg mb-2">Validations ({validations.length})</h3>{validations.map(v => <div key={v.id} className="bg-white p-3 rounded-xl shadow-sm border mb-4"><div className="flex justify-between mb-2"><span className="font-bold text-lg">{v.userName}</span><span className="text-xs text-gray-400">{v.timestamp?.toDate().toLocaleTimeString()}</span></div><img src={v.photoBase64} className="rounded mb-2 max-h-48 object-contain bg-black w-full"/>
-                            <div className="flex justify-between items-center mt-2 mb-2">
-                                <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold border">{SPORT_EMOJIS[v.sport || 'Muscu']} {v.sport || 'Muscu'}</span>
-                                {v.intensity && <span className="text-xs font-bold text-red-600">Intensité: {v.intensity}/10</span>}
-                            </div>
+                            {v.intensity && <p className="text-xs font-bold text-red-600 mb-2">Intensité: {v.intensity}/10</p>}
                             {v.exercises && v.exercises.map((ex,i)=><p key={i} className="text-xs">💪 {ex.name}: {ex.weight}kg x {ex.reps}</p>)}
                             <div className="flex gap-2 mt-2"><button onClick={() => validate(v, 'rejected')} className="flex-1 border border-red-200 text-red-600 py-2 rounded font-bold">Refuser</button><button onClick={() => validate(v, 'approved')} className="flex-1 bg-yellow-400 py-2 rounded font-bold">Valider</button></div></div>)}</div>
                             <div><h3 className="font-bold text-lg mb-2">Livraisons ({deliveries.length})</h3>{deliveries.map(p => <div key={p.id} className="bg-blue-50 p-3 rounded-xl flex justify-between items-center mb-2"><div><p className="font-bold">{p.userName}</p><p className="text-sm">{p.itemName}</p></div><button onClick={() => deliver(p)} className="bg-blue-600 text-white px-3 py-1 rounded">Livré</button></div>)}</div>
