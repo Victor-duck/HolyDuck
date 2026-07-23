@@ -985,12 +985,19 @@
                         else if (d.joinedAt) refDate = new Date(d.joinedAt.seconds * 1000);
 
                         if (refDate) {
-                            if (refDate < startOfLastWeek && d.points > 0) {
-                                notify("1 semaine sans sport = 0 pts !", "error");
-                                updateDoc(userRef, { points: 0 });
+                            const currentWeekStr = startOfWeek.toISOString().split('T')[0];
+                            
+                            if (refDate < startOfLastWeek && d.penaltyWeek !== currentWeekStr) {
+                                if (d.points > 0) {
+                                    notify("1 semaine sans sport = 0 pts !", "error");
+                                    updateDoc(userRef, { points: 0, penaltyWeek: currentWeekStr });
+                                } else {
+                                    updateDoc(userRef, { penaltyWeek: currentWeekStr });
+                                }
                             }
-                            if (d.weeklyWorkouts > 0 && refDate < startOfWeek) {
-                                updateDoc(userRef, { weeklyWorkouts: 0 });
+                            
+                            if (d.weeklyWorkouts > 0 && refDate < startOfWeek && d.weeklyReset !== currentWeekStr) {
+                                updateDoc(userRef, { weeklyWorkouts: 0, weeklyReset: currentWeekStr });
                             }
                         }
                     } else {
@@ -1030,10 +1037,10 @@
                         const cred = await signInAnonymously(auth);
                         await updateProfile(cred.user, { displayName: 'Daddy Duck' });
                         
-                        // Verification avant création pour conserver les points !
-                        const snap = await getDoc(doc(db, 'duck_users', 'daddy duck'));
+                        const userRef = doc(db, 'duck_users', 'daddy duck');
+                        const snap = await getDoc(userRef);
                         if (!snap.exists()) {
-                            await setDoc(doc(db, 'duck_users', 'daddy duck'), { name: 'Daddy Duck', points: 0, totalWorkouts: 0, avatarId: 'classic' });
+                            await setDoc(userRef, { name: 'Daddy Duck', points: 0, totalWorkouts: 0, weeklyWorkouts: 0, avatarId: 'classic', joinedAt: serverTimestamp() });
                         }
 
                         setUsername('Daddy Duck');
