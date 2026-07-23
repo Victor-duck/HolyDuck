@@ -968,7 +968,7 @@
                 const userRef = doc(db, 'duck_users', username.toLowerCase());
                 const unsubUser = onSnapshot(userRef, (s) => {
                     if (s.exists()) {
-                        const d = s.data(); setUserData(d);
+                        const d = s.data({ serverTimestamps: 'estimate' }); setUserData(d);
                         if (!d.avatarId && !isDaddy) setShowAvatar(true);
                         
                         const now = new Date();
